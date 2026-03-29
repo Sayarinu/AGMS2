@@ -1,0 +1,24 @@
+{
+  "name": "agms2",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Sayarinu/AGMS2.git"
+  },
+  "homepage": "https://github.com/Sayarinu/AGMS2",
+  "bugs": {
+    "url": "https://github.com/Sayarinu/AGMS2/issues"
+  },
+  "packageManager": "pnpm@10.8.1",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "release:patch": "pnpm --dir packages/vsc-extension version patch --no-git-tag-version",
+    "release:minor": "pnpm --dir packages/vsc-extension version minor --no-git-tag-version",
+    "release:major": "pnpm --dir packages/vsc-extension version major --no-git-tag-version"
+  }
+}
