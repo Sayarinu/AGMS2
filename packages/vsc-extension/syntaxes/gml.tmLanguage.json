@@ -1,0 +1,151 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "GML",
+  "scopeName": "source.gms2.gml",
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#directives"
+    },
+    {
+      "include": "#declarations"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#constants"
+    },
+    {
+      "include": "#variables"
+    },
+    {
+      "include": "#functions"
+    },
+    {
+      "include": "#operators"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.gml",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.gml",
+          "begin": "/\\*",
+          "end": "\\*/"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.gml",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "match": "\\\\.",
+              "name": "constant.character.escape.gml"
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.single.gml",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "match": "\\\\.",
+              "name": "constant.character.escape.gml"
+            }
+          ]
+        },
+        {
+          "name": "string.interpolated.backtick.gml",
+          "begin": "`",
+          "end": "`"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.hex.gml",
+          "match": "\\$[0-9A-Fa-f]+"
+        },
+        {
+          "name": "constant.numeric.gml",
+          "match": "\\b\\d+(?:\\.\\d+)?\\b"
+        }
+      ]
+    },
+    "directives": {
+      "patterns": [
+        {
+          "name": "keyword.control.directive.gml",
+          "match": "\\b(?:#endregion|#region|#macro)\\b"
+        }
+      ]
+    },
+    "declarations": {
+      "patterns": [
+        {
+          "name": "storage.type.gml",
+          "match": "\\b(?:globalvar|static|var)\\b"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.gml",
+          "match": "\\b(?:constructor|continue|function|finally|repeat|switch|return|delete|while|break|until|catch|throw|else|with|case|exit|enum|for|try|new|not|and|xor|if|do|or)\\b"
+        }
+      ]
+    },
+    "constants": {
+      "patterns": [
+        {
+          "name": "constant.language.gml",
+          "match": "\\b(?:network_type_disconnect|network_type_connect|network_socket_tcp|network_type_data|ev_step_normal|buffer_string|ev_step_begin|ev_collision|buffer_grow|ev_step_end|buffer_u16|ev_destroy|ev_cleanup|undefined|bm_normal|gp_axislh|gp_axislv|buffer_u8|ev_create|vk_right|vk_space|ev_alarm|ev_async|c_white|fa_left|vk_left|vk_down|mb_left|ev_step|ev_draw|bm_add|fa_top|noone|false|c_red|vk_up|true)\\b"
+        }
+      ]
+    },
+    "variables": {
+      "patterns": [
+        {
+          "name": "variable.language.gml",
+          "match": "\\b(?:application_surface|working_directory|object_index|sprite_index|view_enabled|view_visible|current_time|event_number|game_save_id|image_index|image_speed|persistent|room_speed|async_load|event_type|mouse_x|mouse_y|global|other|depth|alarm|self|room|id|x|y)\\b"
+        }
+      ]
+    },
+    "functions": {
+      "patterns": [
+        {
+          "name": "support.function.gml",
+          "match": "\\b(?:gamepad_button_check_released|gamepad_button_check_pressed|mouse_check_button_released|mouse_check_button_pressed|device_mouse_check_button|variable_instance_exists|keyboard_check_released|keyboard_check_pressed|file_text_write_string|variable_global_exists|variable_struct_exists|camera_get_view_height|instance_create_layer|instance_create_depth|layer_sequence_create|audio_group_is_loaded|file_text_open_append|file_text_read_string|network_create_socket|variable_instance_get|camera_get_view_width|gamepad_is_connected|gamepad_button_check|file_text_open_write|shader_set_uniform_f|collision_rectangle|audio_create_stream|audio_play_sound_at|ds_priority_destroy|file_text_open_read|file_text_read_real|network_send_packet|variable_struct_get|variable_struct_set|camera_set_view_pos|room_goto_previous|layer_add_instance|mouse_check_button|gamepad_axis_value|audio_group_unload|ds_list_find_value|ds_priority_create|move_towards_point|show_debug_message|camera_create_view|shader_get_uniform|instance_position|gpu_set_blendmode|audio_pause_sound|ds_map_find_value|file_text_writeln|instance_destroy|position_meeting|collision_circle|audio_play_sound|audio_stop_sound|audio_sound_gain|audio_group_load|ds_stack_destroy|ds_queue_destroy|network_send_raw|http_post_string|instance_exists|instance_number|collision_point|draw_set_halign|draw_set_valign|point_direction|ds_list_destroy|ds_grid_destroy|ds_stack_create|ds_queue_create|file_text_close|network_connect|event_inherited|view_set_camera|instance_place|collision_line|draw_rectangle|draw_set_color|draw_set_alpha|surface_exists|surface_create|room_goto_next|keyboard_check|point_distance|string_replace|array_contains|ds_map_destroy|ds_list_create|ds_list_delete|ds_grid_create|json_stringify|ini_write_real|instance_find|place_meeting|draw_set_font|room_get_info|string_length|ds_map_create|ds_map_exists|ds_map_delete|ds_grid_clear|buffer_create|buffer_delete|event_perform|draw_surface|room_restart|layer_get_id|sequence_get|layer_exists|string_lower|string_upper|string_split|array_length|array_insert|array_delete|array_filter|array_reduce|ds_list_size|buffer_write|shader_reset|draw_sprite|draw_circle|lengthdir_x|lengthdir_y|string_copy|ds_list_add|ds_grid_set|ds_grid_get|file_exists|buffer_tell|string_pos|array_push|array_copy|array_sort|ds_map_add|json_parse|event_user|shader_set|draw_self|draw_text|room_goto|array_pop|array_map|ini_close|ini_open|http_get|arctan2|irandom|arcsin|arccos|random|choose|string|floor|round|clamp|ceil|sign|lerp|damp|ord|abs|sin|cos|tan)\\b(?=\\s*\\()"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.gml",
+          "match": "(?:\\+\\+|--|\\+=|-=|\\*=|/=|==|!=|<=|>=|&&|\\|\\||\\^\\^|<<|>>|div\\b|mod\\b|[+\\-*/%!=<>?:&|^])"
+        }
+      ]
+    }
+  }
+}

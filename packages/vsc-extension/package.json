@@ -1,0 +1,277 @@
+{
+  "name": "agms2-vsc-extension",
+  "displayName": "AGMS2",
+  "description": "GameMaker Studio 2 project tools for VS Code-compatible editors.",
+  "version": "0.1.0",
+  "private": true,
+  "publisher": "agms2",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Sayarinu/AGMS2.git"
+  },
+  "homepage": "https://github.com/Sayarinu/AGMS2",
+  "bugs": {
+    "url": "https://github.com/Sayarinu/AGMS2/issues"
+  },
+  "engines": {
+    "vscode": "^1.96.0",
+    "node": ">=20"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:gms2.openProject",
+    "onCommand:gms2.refreshExplorer",
+    "onView:gms2Explorer",
+    "onLanguage:gml",
+    "workspaceContains:**/*.yyp",
+    "workspaceContains:**/*.gml"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "configurationDefaults": {
+      "files.associations": {
+        "*.yy": "json",
+        "*.yyp": "json"
+      }
+    },
+    "commands": [
+      {
+        "command": "gms2.openProject",
+        "title": "GMS2: Open Project"
+      },
+      {
+        "command": "gms2.refreshExplorer",
+        "title": "GMS2: Refresh Explorer"
+      },
+      {
+        "command": "gms2.buildProject",
+        "title": "GMS2: Build Project"
+      },
+      {
+        "command": "gms2.runProject",
+        "title": "GMS2: Run Project"
+      },
+      {
+        "command": "gms2.createObject",
+        "title": "GMS2: Create Object"
+      },
+      {
+        "command": "gms2.createScript",
+        "title": "GMS2: Create Script"
+      },
+      {
+        "command": "gms2.searchGml",
+        "title": "GMS2: Search GML"
+      },
+      {
+        "command": "gms2.addEvent",
+        "title": "GMS2: Add Event"
+      },
+      {
+        "command": "gms2.setObjectSprite",
+        "title": "GMS2: Set Object Sprite"
+      },
+      {
+        "command": "gms2.setObjectParent",
+        "title": "GMS2: Set Object Parent"
+      },
+      {
+        "command": "gms2.deleteAsset",
+        "title": "GMS2: Delete Asset"
+      },
+      {
+        "command": "gms2.openRoomPreview",
+        "title": "GMS2: Open Room Preview"
+      },
+      {
+        "command": "gms2.openObjectInspector",
+        "title": "GMS2: Open Object Inspector"
+      },
+      {
+        "command": "gms2.reconnectServer",
+        "title": "GMS2: Reconnect Server"
+      }
+    ],
+    "configuration": {
+      "title": "GMS2",
+      "properties": {
+        "gms2.projectPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the active .yyp project."
+        },
+        "gms2.useBundledServer": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use the MCP server bundled inside the extension package."
+        },
+        "gms2.serverPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to an external AGMS2 MCP server entry file. Used when the bundled server is disabled."
+        },
+        "gms2.gmsBinaryPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the GameMaker executable."
+        },
+        "gms2.autoStartServer": {
+          "type": "boolean",
+          "default": true,
+          "description": "Start the MCP server automatically when a saved project is available."
+        },
+        "gms2.buildTarget": {
+          "type": "string",
+          "enum": [
+            "Windows"
+          ],
+          "default": "Windows",
+          "description": "GameMaker build target."
+        },
+        "gms2.showBuiltinHints": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show built-in GML hover documentation."
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "gms2",
+          "title": "GMS2",
+          "icon": "media/gamemaker-diamond.svg"
+        }
+      ]
+    },
+    "views": {
+      "gms2": [
+        {
+          "id": "gms2Explorer",
+          "name": "Project Explorer"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "gms2.refreshExplorer",
+          "when": "view == gms2Explorer",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "gms2.createObject",
+          "when": "view == gms2Explorer && viewItem == gms2Folder",
+          "group": "inline@1"
+        },
+        {
+          "command": "gms2.createScript",
+          "when": "view == gms2Explorer && viewItem == gms2Folder",
+          "group": "inline@2"
+        },
+        {
+          "command": "gms2.addEvent",
+          "when": "view == gms2Explorer && viewItem == gms2Object",
+          "group": "inline@1"
+        },
+        {
+          "command": "gms2.setObjectSprite",
+          "when": "view == gms2Explorer && viewItem == gms2Object",
+          "group": "inline@2"
+        },
+        {
+          "command": "gms2.setObjectParent",
+          "when": "view == gms2Explorer && viewItem == gms2Object",
+          "group": "inline@3"
+        },
+        {
+          "command": "gms2.openObjectInspector",
+          "when": "view == gms2Explorer && viewItem == gms2Object",
+          "group": "navigation@1"
+        },
+        {
+          "command": "gms2.openRoomPreview",
+          "when": "view == gms2Explorer && viewItem == gms2Room",
+          "group": "navigation@1"
+        },
+        {
+          "command": "gms2.deleteAsset",
+          "when": "view == gms2Explorer && viewItem =~ /^gms2(Object|Script|Room|Sprite)$/",
+          "group": "navigation@9"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "gms2.setObjectSprite",
+          "when": "false"
+        },
+        {
+          "command": "gms2.setObjectParent",
+          "when": "false"
+        },
+        {
+          "command": "gms2.deleteAsset",
+          "when": "false"
+        }
+      ]
+    },
+    "languages": [
+      {
+        "id": "gml",
+        "aliases": [
+          "GML",
+          "GameMaker Language"
+        ],
+        "extensions": [
+          ".gml"
+        ],
+        "configuration": "./gml.language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "gml",
+        "scopeName": "source.gms2.gml",
+        "path": "./syntaxes/gml.tmLanguage.json"
+      }
+    ],
+    "jsonValidation": [
+      {
+        "fileMatch": "*.yy",
+        "url": "./schemas/gms2-yy.schema.json"
+      },
+      {
+        "fileMatch": "*.yyp",
+        "url": "./schemas/gms2-yyp.schema.json"
+      }
+    ]
+  },
+  "scripts": {
+    "prebuild": "node ./scripts/generate-gml-assets.mjs",
+    "build": "node ./scripts/build.mjs",
+    "dev": "node ./scripts/build.mjs --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "package": "vsce package --no-dependencies",
+    "package:vsix": "vsce package --no-dependencies --out ./agms2-vsc-extension-${npm_package_version}.vsix",
+    "publish:ovsx": "ovsx publish"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.28.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "esbuild": "^0.27.0",
+    "@vscode/vsce": "^3.6.2",
+    "ovsx": "^0.10.5",
+    "typescript": "^5.8.3",
+    "vscode": "^1.1.37",
+    "vsce": "^2.15.0"
+  }
+}
