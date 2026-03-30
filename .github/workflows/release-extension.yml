@@ -31,8 +31,10 @@ jobs:
 
       - name: Read extension version
         id: version
-        run: |
-          echo "value=$(node -p 'require(\"./packages/vsc-extension/package.json\").version')" >> "$GITHUB_OUTPUT"
+        run: >
+          node -e "const fs = require('node:fs');
+          const version = require('./packages/vsc-extension/package.json').version;
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'value=' + version + '\n');"
 
       - name: Check whether the version tag already exists
         id: tag_check
