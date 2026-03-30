@@ -83,7 +83,6 @@ AGMS2/
 │  ├─ gml-skills/
 │  ├─ mcp-server/
 │  └─ vsc-extension/
-├─ Queen's Court/
 ├─ package.json
 ├─ pnpm-workspace.yaml
 └─ tsconfig.base.json
