@@ -1,0 +1,4512 @@
+{
+  "version": "2024.8 LTS",
+  "functions": [
+    {
+      "name": "instance_create_layer",
+      "signature": "instance_create_layer(x, y, layer_name_or_id, object_index, [var_struct])",
+      "returns": "Id.Instance",
+      "description": "Creates an instance on a room layer and returns its id.",
+      "params": [
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "X position in the room"
+        },
+        {
+          "name": "y",
+          "type": "Real",
+          "description": "Y position in the room"
+        },
+        {
+          "name": "layer_name_or_id",
+          "type": "String|Id.Layer",
+          "description": "Layer name or id"
+        },
+        {
+          "name": "object_index",
+          "type": "Asset.GMObject",
+          "description": "Object asset to instantiate"
+        },
+        {
+          "name": "var_struct",
+          "type": "Struct",
+          "optional": true,
+          "description": "Variables applied on creation"
+        }
+      ],
+      "category": "instances",
+      "deprecated": false,
+      "tags": [
+        "create",
+        "instance",
+        "layer"
+      ]
+    },
+    {
+      "name": "instance_create_depth",
+      "signature": "instance_create_depth(x, y, depth, object_index, [var_struct])",
+      "returns": "Id.Instance",
+      "description": "Creates an instance at a depth and returns its id.",
+      "params": [
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "X position in the room"
+        },
+        {
+          "name": "y",
+          "type": "Real",
+          "description": "Y position in the room"
+        },
+        {
+          "name": "depth",
+          "type": "Real",
+          "description": "Depth to create on"
+        },
+        {
+          "name": "object_index",
+          "type": "Asset.GMObject",
+          "description": "Object asset to instantiate"
+        },
+        {
+          "name": "var_struct",
+          "type": "Struct",
+          "optional": true,
+          "description": "Variables applied on creation"
+        }
+      ],
+      "category": "instances",
+      "deprecated": false,
+      "tags": [
+        "create",
+        "instance",
+        "depth"
+      ]
+    },
+    {
+      "name": "instance_destroy",
+      "signature": "instance_destroy([id], [execute_event])",
+      "returns": "N/A",
+      "description": "Destroys self or a target instance.",
+      "params": [
+        {
+          "name": "id",
+          "type": "Id.Instance",
+          "optional": true,
+          "description": "Target instance id, defaults to self"
+        },
+        {
+          "name": "execute_event",
+          "type": "Bool",
+          "optional": true,
+          "description": "Whether Destroy event should run"
+        }
+      ],
+      "category": "instances",
+      "deprecated": false,
+      "tags": [
+        "destroy",
+        "instance"
+      ]
+    },
+    {
+      "name": "instance_exists",
+      "signature": "instance_exists(object_or_id)",
+      "returns": "Bool",
+      "description": "Checks whether an instance or object currently exists.",
+      "params": [
+        {
+          "name": "object_or_id",
+          "type": "Asset.GMObject|Id.Instance",
+          "description": "Object asset or instance id"
+        }
+      ],
+      "category": "instances",
+      "deprecated": false,
+      "tags": [
+        "query",
+        "instance"
+      ]
+    },
+    {
+      "name": "instance_number",
+      "signature": "instance_number(object_index)",
+      "returns": "Real",
+      "description": "Returns how many instances of an object exist.",
+      "params": [
+        {
+          "name": "object_index",
+          "type": "Asset.GMObject",
+          "description": "Object asset to count"
+        }
+      ],
+      "category": "instances",
+      "deprecated": false,
+      "tags": [
+        "count",
+        "instance"
+      ]
+    },
+    {
+      "name": "instance_find",
+      "signature": "instance_find(object_index, n)",
+      "returns": "Id.Instance|noone",
+      "description": "Returns the nth instance of an object or noone.",
+      "params": [
+        {
+          "name": "object_index",
+          "type": "Asset.GMObject",
+          "description": "Object asset to query"
+        },
+        {
+          "name": "n",
+          "type": "Real",
+          "description": "Zero-based instance slot"
+        }
+      ],
+      "category": "instances",
+      "deprecated": false,
+      "tags": [
+        "find",
+        "instance"
+      ]
+    },
+    {
+      "name": "place_meeting",
+      "signature": "place_meeting(x, y, object)",
+      "returns": "Bool",
+      "description": "Tests whether a collision would happen at a position.",
+      "params": [
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "Test X position"
+        },
+        {
+          "name": "y",
+          "type": "Real",
+          "description": "Test Y position"
+        },
+        {
+          "name": "object",
+          "type": "Asset.GMObject|Id.Instance|Keyword.All",
+          "description": "Collision target"
+        }
+      ],
+      "category": "collision",
+      "deprecated": false,
+      "tags": [
+        "collision",
+        "movement",
+        "predict"
+      ]
+    },
+    {
+      "name": "position_meeting",
+      "signature": "position_meeting(x, y, object)",
+      "returns": "Bool",
+      "description": "Tests whether a point overlaps a target.",
+      "params": [
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "Point X"
+        },
+        {
+          "name": "y",
+          "type": "Real",
+          "description": "Point Y"
+        },
+        {
+          "name": "object",
+          "type": "Asset.GMObject|Id.Instance|Keyword.All",
+          "description": "Collision target"
+        }
+      ],
+      "category": "collision",
+      "deprecated": false,
+      "tags": [
+        "collision",
+        "point"
+      ]
+    },
+    {
+      "name": "instance_place",
+      "signature": "instance_place(x, y, object)",
+      "returns": "Id.Instance|noone",
+      "description": "Returns the colliding instance at a test position.",
+      "params": [
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "Test X position"
+        },
+        {
+          "name": "y",
+          "type": "Real",
+          "description": "Test Y position"
+        },
+        {
+          "name": "object",
+          "type": "Asset.GMObject|Id.Instance|Keyword.All",
+          "description": "Collision target"
+        }
+      ],
+      "category": "collision",
+      "deprecated": false,
+      "tags": [
+        "collision",
+        "instance"
+      ]
+    },
+    {
+      "name": "instance_position",
+      "signature": "instance_position(x, y, object)",
+      "returns": "Id.Instance|noone",
+      "description": "Returns the instance at a point or noone.",
+      "params": [
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "Point X"
+        },
+        {
+          "name": "y",
+          "type": "Real",
+          "description": "Point Y"
+        },
+        {
+          "name": "object",
+          "type": "Asset.GMObject|Id.Instance|Keyword.All",
+          "description": "Collision target"
+        }
+      ],
+      "category": "collision",
+      "deprecated": false,
+      "tags": [
+        "collision",
+        "point",
+        "instance"
+      ]
+    },
+    {
+      "name": "collision_rectangle",
+      "signature": "collision_rectangle(x1, y1, x2, y2, obj, prec, notme)",
+      "returns": "Id.Instance|noone",
+      "description": "Returns an instance overlapping a rectangle.",
+      "params": [
+        {
+          "name": "x1",
+          "type": "Real",
+          "description": "Rectangle left"
+        },
+        {
+          "name": "y1",
+          "type": "Real",
+          "description": "Rectangle top"
+        },
+        {
+          "name": "x2",
+          "type": "Real",
+          "description": "Rectangle right"
+        },
+        {
+          "name": "y2",
+          "type": "Real",
+          "description": "Rectangle bottom"
+        },
+        {
+          "name": "obj",
+          "type": "Asset.GMObject|Id.Instance|Keyword.All",
+          "description": "Collision target"
+        },
+        {
+          "name": "prec",
+          "type": "Bool",
+          "description": "Use precise checking"
+        },
+        {
+          "name": "notme",
+          "type": "Bool",
+          "description": "Exclude self"
+        }
+      ],
+      "category": "collision",
+      "deprecated": false,
+      "tags": [
+        "collision",
+        "area",
+        "rectangle"
+      ]
+    },
+    {
+      "name": "collision_circle",
+      "signature": "collision_circle(x, y, rad, obj, prec, notme)",
+      "returns": "Id.Instance|noone",
+      "description": "Returns an instance overlapping a circle.",
+      "params": [
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "Circle center X"
+        },
+        {
+          "name": "y",
+          "type": "Real",
+          "description": "Circle center Y"
+        },
+        {
+          "name": "rad",
+          "type": "Real",
+          "description": "Circle radius"
+        },
+        {
+          "name": "obj",
+          "type": "Asset.GMObject|Id.Instance|Keyword.All",
+          "description": "Collision target"
+        },
+        {
+          "name": "prec",
+          "type": "Bool",
+          "description": "Use precise checking"
+        },
+        {
+          "name": "notme",
+          "type": "Bool",
+          "description": "Exclude self"
+        }
+      ],
+      "category": "collision",
+      "deprecated": false,
+      "tags": [
+        "collision",
+        "area",
+        "circle"
+      ]
+    },
+    {
+      "name": "collision_line",
+      "signature": "collision_line(x1, y1, x2, y2, obj, prec, notme)",
+      "returns": "Id.Instance|noone",
+      "description": "Returns an instance intersecting a line.",
+      "params": [
+        {
+          "name": "x1",
+          "type": "Real",
+          "description": "Line start X"
+        },
+        {
+          "name": "y1",
+          "type": "Real",
+          "description": "Line start Y"
+        },
+        {
+          "name": "x2",
+          "type": "Real",
+          "description": "Line end X"
+        },
+        {
+          "name": "y2",
+          "type": "Real",
+          "description": "Line end Y"
+        },
+        {
+          "name": "obj",
+          "type": "Asset.GMObject|Id.Instance|Keyword.All",
+          "description": "Collision target"
+        },
+        {
+          "name": "prec",
+          "type": "Bool",
+          "description": "Use precise checking"
+        },
+        {
+          "name": "notme",
+          "type": "Bool",
+          "description": "Exclude self"
+        }
+      ],
+      "category": "collision",
+      "deprecated": false,
+      "tags": [
+        "collision",
+        "line"
+      ]
+    },
+    {
+      "name": "collision_point",
+      "signature": "collision_point(x, y, obj, prec, notme)",
+      "returns": "Id.Instance|noone",
+      "description": "Returns an instance colliding with a point.",
+      "params": [
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "Point X"
+        },
+        {
+          "name": "y",
+          "type": "Real",
+          "description": "Point Y"
+        },
+        {
+          "name": "obj",
+          "type": "Asset.GMObject|Id.Instance|Keyword.All",
+          "description": "Collision target"
+        },
+        {
+          "name": "prec",
+          "type": "Bool",
+          "description": "Use precise checking"
+        },
+        {
+          "name": "notme",
+          "type": "Bool",
+          "description": "Exclude self"
+        }
+      ],
+      "category": "collision",
+      "deprecated": false,
+      "tags": [
+        "collision",
+        "point"
+      ]
+    },
+    {
+      "name": "draw_self",
+      "signature": "draw_self()",
+      "returns": "N/A",
+      "description": "Draws the instance's current sprite normally.",
+      "params": [],
+      "category": "drawing",
+      "deprecated": false,
+      "tags": [
+        "draw",
+        "sprite",
+        "self"
+      ]
+    },
+    {
+      "name": "draw_sprite",
+      "signature": "draw_sprite(sprite, subimg, x, y)",
+      "returns": "N/A",
+      "description": "Draws a sprite frame at a position.",
+      "params": [
+        {
+          "name": "sprite",
+          "type": "Asset.Sprite",
+          "description": "Sprite asset"
+        },
+        {
+          "name": "subimg",
+          "type": "Real",
+          "description": "Subimage index"
+        },
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "Draw X position"
+        },
+        {
+          "name": "y",
+          "type": "Real",
+          "description": "Draw Y position"
+        }
+      ],
+      "category": "drawing",
+      "deprecated": false,
+      "tags": [
+        "draw",
+        "sprite"
+      ]
+    },
+    {
+      "name": "draw_text",
+      "signature": "draw_text(x, y, string)",
+      "returns": "N/A",
+      "description": "Draws text at a position.",
+      "params": [
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "Draw X position"
+        },
+        {
+          "name": "y",
+          "type": "Real",
+          "description": "Draw Y position"
+        },
+        {
+          "name": "string",
+          "type": "String",
+          "description": "Text to draw"
+        }
+      ],
+      "category": "drawing",
+      "deprecated": false,
+      "tags": [
+        "draw",
+        "text"
+      ]
+    },
+    {
+      "name": "draw_rectangle",
+      "signature": "draw_rectangle(x1, y1, x2, y2, outline)",
+      "returns": "N/A",
+      "description": "Draws a filled or outlined rectangle.",
+      "params": [
+        {
+          "name": "x1",
+          "type": "Real",
+          "description": "Left edge"
+        },
+        {
+          "name": "y1",
+          "type": "Real",
+          "description": "Top edge"
+        },
+        {
+          "name": "x2",
+          "type": "Real",
+          "description": "Right edge"
+        },
+        {
+          "name": "y2",
+          "type": "Real",
+          "description": "Bottom edge"
+        },
+        {
+          "name": "outline",
+          "type": "Bool",
+          "description": "Outline only if true"
+        }
+      ],
+      "category": "drawing",
+      "deprecated": false,
+      "tags": [
+        "draw",
+        "shape",
+        "rectangle"
+      ]
+    },
+    {
+      "name": "draw_circle",
+      "signature": "draw_circle(x, y, radius, outline)",
+      "returns": "N/A",
+      "description": "Draws a circle at a position.",
+      "params": [
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "Center X"
+        },
+        {
+          "name": "y",
+          "type": "Real",
+          "description": "Center Y"
+        },
+        {
+          "name": "radius",
+          "type": "Real",
+          "description": "Circle radius"
+        },
+        {
+          "name": "outline",
+          "type": "Bool",
+          "description": "Outline only if true"
+        }
+      ],
+      "category": "drawing",
+      "deprecated": false,
+      "tags": [
+        "draw",
+        "shape",
+        "circle"
+      ]
+    },
+    {
+      "name": "draw_set_color",
+      "signature": "draw_set_color(col)",
+      "returns": "N/A",
+      "description": "Sets the current drawing color state.",
+      "params": [
+        {
+          "name": "col",
+          "type": "Color",
+          "description": "Color to use for future draws"
+        }
+      ],
+      "category": "drawing",
+      "deprecated": false,
+      "tags": [
+        "draw",
+        "state",
+        "color"
+      ]
+    },
+    {
+      "name": "draw_set_alpha",
+      "signature": "draw_set_alpha(alpha)",
+      "returns": "N/A",
+      "description": "Sets the current drawing alpha state.",
+      "params": [
+        {
+          "name": "alpha",
+          "type": "Real",
+          "description": "Alpha from 0 to 1"
+        }
+      ],
+      "category": "drawing",
+      "deprecated": false,
+      "tags": [
+        "draw",
+        "state",
+        "alpha"
+      ]
+    },
+    {
+      "name": "draw_set_font",
+      "signature": "draw_set_font(font)",
+      "returns": "N/A",
+      "description": "Sets the current font for text drawing.",
+      "params": [
+        {
+          "name": "font",
+          "type": "Asset.Font",
+          "description": "Font asset to use"
+        }
+      ],
+      "category": "drawing",
+      "deprecated": false,
+      "tags": [
+        "draw",
+        "text",
+        "font"
+      ]
+    },
+    {
+      "name": "draw_set_halign",
+      "signature": "draw_set_halign(align)",
+      "returns": "N/A",
+      "description": "Sets horizontal text alignment.",
+      "params": [
+        {
+          "name": "align",
+          "type": "TextAlign.Horizontal",
+          "description": "Horizontal alignment constant"
+        }
+      ],
+      "category": "drawing",
+      "deprecated": false,
+      "tags": [
+        "draw",
+        "text",
+        "alignment"
+      ]
+    },
+    {
+      "name": "draw_set_valign",
+      "signature": "draw_set_valign(align)",
+      "returns": "N/A",
+      "description": "Sets vertical text alignment.",
+      "params": [
+        {
+          "name": "align",
+          "type": "TextAlign.Vertical",
+          "description": "Vertical alignment constant"
+        }
+      ],
+      "category": "drawing",
+      "deprecated": false,
+      "tags": [
+        "draw",
+        "text",
+        "alignment"
+      ]
+    },
+    {
+      "name": "draw_surface",
+      "signature": "draw_surface(surface, x, y)",
+      "returns": "N/A",
+      "description": "Draws a surface at a position.",
+      "params": [
+        {
+          "name": "surface",
+          "type": "Id.Surface",
+          "description": "Surface id to draw"
+        },
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "Draw X position"
+        },
+        {
+          "name": "y",
+          "type": "Real",
+          "description": "Draw Y position"
+        }
+      ],
+      "category": "drawing",
+      "deprecated": false,
+      "tags": [
+        "draw",
+        "surface"
+      ]
+    },
+    {
+      "name": "surface_exists",
+      "signature": "surface_exists(id)",
+      "returns": "Bool",
+      "description": "Checks whether a surface id is valid.",
+      "params": [
+        {
+          "name": "id",
+          "type": "Id.Surface",
+          "description": "Surface id to check"
+        }
+      ],
+      "category": "drawing",
+      "deprecated": false,
+      "tags": [
+        "surface",
+        "query"
+      ]
+    },
+    {
+      "name": "surface_create",
+      "signature": "surface_create(width, height, [format])",
+      "returns": "Id.Surface",
+      "description": "Creates a surface and returns its id.",
+      "params": [
+        {
+          "name": "width",
+          "type": "Real",
+          "description": "Surface width"
+        },
+        {
+          "name": "height",
+          "type": "Real",
+          "description": "Surface height"
+        },
+        {
+          "name": "format",
+          "type": "SurfaceFormat",
+          "optional": true,
+          "description": "Optional surface format"
+        }
+      ],
+      "category": "drawing",
+      "deprecated": false,
+      "tags": [
+        "surface",
+        "create"
+      ]
+    },
+    {
+      "name": "gpu_set_blendmode",
+      "signature": "gpu_set_blendmode(mode)",
+      "returns": "N/A",
+      "description": "Sets the GPU blend mode for later draws.",
+      "params": [
+        {
+          "name": "mode",
+          "type": "BlendMode",
+          "description": "Blend mode constant"
+        }
+      ],
+      "category": "drawing",
+      "deprecated": false,
+      "tags": [
+        "gpu",
+        "blend",
+        "state"
+      ]
+    },
+    {
+      "name": "room_goto",
+      "signature": "room_goto(room)",
+      "returns": "N/A",
+      "description": "Transitions to a target room.",
+      "params": [
+        {
+          "name": "room",
+          "type": "Asset.Room",
+          "description": "Room asset to go to"
+        }
+      ],
+      "category": "rooms",
+      "deprecated": false,
+      "tags": [
+        "room",
+        "transition"
+      ]
+    },
+    {
+      "name": "room_goto_next",
+      "signature": "room_goto_next()",
+      "returns": "N/A",
+      "description": "Transitions to the next room in order.",
+      "params": [],
+      "category": "rooms",
+      "deprecated": false,
+      "tags": [
+        "room",
+        "transition"
+      ]
+    },
+    {
+      "name": "room_goto_previous",
+      "signature": "room_goto_previous()",
+      "returns": "N/A",
+      "description": "Transitions to the previous room in order.",
+      "params": [],
+      "category": "rooms",
+      "deprecated": false,
+      "tags": [
+        "room",
+        "transition"
+      ]
+    },
+    {
+      "name": "room_restart",
+      "signature": "room_restart()",
+      "returns": "N/A",
+      "description": "Restarts the current room.",
+      "params": [],
+      "category": "rooms",
+      "deprecated": false,
+      "tags": [
+        "room",
+        "restart"
+      ]
+    },
+    {
+      "name": "room_get_info",
+      "signature": "room_get_info(room, [views], [instances], [layers], [tilesets], [sprites], [sequences], [tilemaps], [assets])",
+      "returns": "Struct",
+      "description": "Returns room metadata as a struct.",
+      "params": [
+        {
+          "name": "room",
+          "type": "Asset.Room",
+          "description": "Room asset to inspect"
+        },
+        {
+          "name": "views",
+          "type": "Bool",
+          "optional": true,
+          "description": "Include view data"
+        },
+        {
+          "name": "instances",
+          "type": "Bool",
+          "optional": true,
+          "description": "Include instance data"
+        },
+        {
+          "name": "layers",
+          "type": "Bool",
+          "optional": true,
+          "description": "Include layer data"
+        },
+        {
+          "name": "tilesets",
+          "type": "Bool",
+          "optional": true,
+          "description": "Include tileset data"
+        },
+        {
+          "name": "sprites",
+          "type": "Bool",
+          "optional": true,
+          "description": "Include sprite data"
+        },
+        {
+          "name": "sequences",
+          "type": "Bool",
+          "optional": true,
+          "description": "Include sequence data"
+        },
+        {
+          "name": "tilemaps",
+          "type": "Bool",
+          "optional": true,
+          "description": "Include tilemap data"
+        },
+        {
+          "name": "assets",
+          "type": "Bool",
+          "optional": true,
+          "description": "Include asset references"
+        }
+      ],
+      "category": "rooms",
+      "deprecated": false,
+      "tags": [
+        "room",
+        "metadata",
+        "struct"
+      ]
+    },
+    {
+      "name": "layer_get_id",
+      "signature": "layer_get_id(layer_name)",
+      "returns": "Id.Layer|Real",
+      "description": "Returns a layer id from its name.",
+      "params": [
+        {
+          "name": "layer_name",
+          "type": "String",
+          "description": "Layer name to find"
+        }
+      ],
+      "category": "rooms",
+      "deprecated": false,
+      "tags": [
+        "layer",
+        "query"
+      ]
+    },
+    {
+      "name": "layer_add_instance",
+      "signature": "layer_add_instance(layer_id, inst)",
+      "returns": "N/A",
+      "description": "Adds an existing instance to a layer.",
+      "params": [
+        {
+          "name": "layer_id",
+          "type": "Id.Layer",
+          "description": "Layer id to add onto"
+        },
+        {
+          "name": "inst",
+          "type": "Id.Instance",
+          "description": "Instance id to place on layer"
+        }
+      ],
+      "category": "rooms",
+      "deprecated": false,
+      "tags": [
+        "layer",
+        "instance"
+      ]
+    },
+    {
+      "name": "layer_sequence_create",
+      "signature": "layer_sequence_create(layer_id_or_name, x, y, sequence)",
+      "returns": "Id.SequenceInstance",
+      "description": "Creates a sequence instance on a layer.",
+      "params": [
+        {
+          "name": "layer_id_or_name",
+          "type": "Id.Layer|String",
+          "description": "Layer id or name"
+        },
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "Sequence X position"
+        },
+        {
+          "name": "y",
+          "type": "Real",
+          "description": "Sequence Y position"
+        },
+        {
+          "name": "sequence",
+          "type": "Asset.Sequence",
+          "description": "Sequence asset to spawn"
+        }
+      ],
+      "category": "rooms",
+      "deprecated": false,
+      "tags": [
+        "layer",
+        "sequence"
+      ]
+    },
+    {
+      "name": "sequence_get",
+      "signature": "sequence_get(sequence)",
+      "returns": "Struct",
+      "description": "Returns sequence asset data as a struct.",
+      "params": [
+        {
+          "name": "sequence",
+          "type": "Asset.Sequence",
+          "description": "Sequence asset to inspect"
+        }
+      ],
+      "category": "rooms",
+      "deprecated": false,
+      "tags": [
+        "sequence",
+        "metadata"
+      ]
+    },
+    {
+      "name": "layer_exists",
+      "signature": "layer_exists(layer_name)",
+      "returns": "Bool",
+      "description": "Checks whether a named layer exists.",
+      "params": [
+        {
+          "name": "layer_name",
+          "type": "String",
+          "description": "Layer name to check"
+        }
+      ],
+      "category": "rooms",
+      "deprecated": false,
+      "tags": [
+        "layer",
+        "query"
+      ]
+    },
+    {
+      "name": "keyboard_check",
+      "signature": "keyboard_check(key)",
+      "returns": "Bool",
+      "description": "Checks whether a key is currently held.",
+      "params": [
+        {
+          "name": "key",
+          "type": "KeyCode",
+          "description": "Keyboard key constant or code"
+        }
+      ],
+      "category": "input",
+      "deprecated": false,
+      "tags": [
+        "keyboard",
+        "input",
+        "held"
+      ]
+    },
+    {
+      "name": "keyboard_check_pressed",
+      "signature": "keyboard_check_pressed(key)",
+      "returns": "Bool",
+      "description": "Checks whether a key was pressed this frame.",
+      "params": [
+        {
+          "name": "key",
+          "type": "KeyCode",
+          "description": "Keyboard key constant or code"
+        }
+      ],
+      "category": "input",
+      "deprecated": false,
+      "tags": [
+        "keyboard",
+        "input",
+        "pressed"
+      ]
+    },
+    {
+      "name": "keyboard_check_released",
+      "signature": "keyboard_check_released(key)",
+      "returns": "Bool",
+      "description": "Checks whether a key was released this frame.",
+      "params": [
+        {
+          "name": "key",
+          "type": "KeyCode",
+          "description": "Keyboard key constant or code"
+        }
+      ],
+      "category": "input",
+      "deprecated": false,
+      "tags": [
+        "keyboard",
+        "input",
+        "released"
+      ]
+    },
+    {
+      "name": "mouse_check_button",
+      "signature": "mouse_check_button(button)",
+      "returns": "Bool",
+      "description": "Checks whether a mouse button is held.",
+      "params": [
+        {
+          "name": "button",
+          "type": "MouseButton",
+          "description": "Mouse button constant"
+        }
+      ],
+      "category": "input",
+      "deprecated": false,
+      "tags": [
+        "mouse",
+        "input",
+        "held"
+      ]
+    },
+    {
+      "name": "mouse_check_button_pressed",
+      "signature": "mouse_check_button_pressed(button)",
+      "returns": "Bool",
+      "description": "Checks whether a mouse button was pressed.",
+      "params": [
+        {
+          "name": "button",
+          "type": "MouseButton",
+          "description": "Mouse button constant"
+        }
+      ],
+      "category": "input",
+      "deprecated": false,
+      "tags": [
+        "mouse",
+        "input",
+        "pressed"
+      ]
+    },
+    {
+      "name": "mouse_check_button_released",
+      "signature": "mouse_check_button_released(button)",
+      "returns": "Bool",
+      "description": "Checks whether a mouse button was released.",
+      "params": [
+        {
+          "name": "button",
+          "type": "MouseButton",
+          "description": "Mouse button constant"
+        }
+      ],
+      "category": "input",
+      "deprecated": false,
+      "tags": [
+        "mouse",
+        "input",
+        "released"
+      ]
+    },
+    {
+      "name": "device_mouse_check_button",
+      "signature": "device_mouse_check_button(device, button)",
+      "returns": "Bool",
+      "description": "Checks a mouse or touch button on a device.",
+      "params": [
+        {
+          "name": "device",
+          "type": "Real",
+          "description": "Device index"
+        },
+        {
+          "name": "button",
+          "type": "MouseButton",
+          "description": "Mouse button constant"
+        }
+      ],
+      "category": "input",
+      "deprecated": false,
+      "tags": [
+        "device",
+        "mouse",
+        "touch"
+      ]
+    },
+    {
+      "name": "gamepad_is_connected",
+      "signature": "gamepad_is_connected(device)",
+      "returns": "Bool",
+      "description": "Checks whether a gamepad slot is connected.",
+      "params": [
+        {
+          "name": "device",
+          "type": "Real",
+          "description": "Gamepad slot index"
+        }
+      ],
+      "category": "input",
+      "deprecated": false,
+      "tags": [
+        "gamepad",
+        "query"
+      ]
+    },
+    {
+      "name": "gamepad_button_check",
+      "signature": "gamepad_button_check(device, button)",
+      "returns": "Bool",
+      "description": "Checks whether a gamepad button is held.",
+      "params": [
+        {
+          "name": "device",
+          "type": "Real",
+          "description": "Gamepad slot index"
+        },
+        {
+          "name": "button",
+          "type": "GamepadButton",
+          "description": "Gamepad button constant"
+        }
+      ],
+      "category": "input",
+      "deprecated": false,
+      "tags": [
+        "gamepad",
+        "input",
+        "held"
+      ]
+    },
+    {
+      "name": "gamepad_button_check_pressed",
+      "signature": "gamepad_button_check_pressed(device, button)",
+      "returns": "Bool",
+      "description": "Checks whether a gamepad button was pressed.",
+      "params": [
+        {
+          "name": "device",
+          "type": "Real",
+          "description": "Gamepad slot index"
+        },
+        {
+          "name": "button",
+          "type": "GamepadButton",
+          "description": "Gamepad button constant"
+        }
+      ],
+      "category": "input",
+      "deprecated": false,
+      "tags": [
+        "gamepad",
+        "input",
+        "pressed"
+      ]
+    },
+    {
+      "name": "gamepad_button_check_released",
+      "signature": "gamepad_button_check_released(device, button)",
+      "returns": "Bool",
+      "description": "Checks whether a gamepad button was released.",
+      "params": [
+        {
+          "name": "device",
+          "type": "Real",
+          "description": "Gamepad slot index"
+        },
+        {
+          "name": "button",
+          "type": "GamepadButton",
+          "description": "Gamepad button constant"
+        }
+      ],
+      "category": "input",
+      "deprecated": false,
+      "tags": [
+        "gamepad",
+        "input",
+        "released"
+      ]
+    },
+    {
+      "name": "gamepad_axis_value",
+      "signature": "gamepad_axis_value(device, axisIndex)",
+      "returns": "Real",
+      "description": "Returns a normalized gamepad axis value.",
+      "params": [
+        {
+          "name": "device",
+          "type": "Real",
+          "description": "Gamepad slot index"
+        },
+        {
+          "name": "axisIndex",
+          "type": "GamepadAxis",
+          "description": "Axis constant or index"
+        }
+      ],
+      "category": "input",
+      "deprecated": false,
+      "tags": [
+        "gamepad",
+        "axis",
+        "analog"
+      ]
+    },
+    {
+      "name": "ord",
+      "signature": "ord(str)",
+      "returns": "Real",
+      "description": "Returns the code of the first character.",
+      "params": [
+        {
+          "name": "str",
+          "type": "String",
+          "description": "String to read"
+        }
+      ],
+      "category": "strings",
+      "deprecated": false,
+      "tags": [
+        "string",
+        "char",
+        "code"
+      ]
+    },
+    {
+      "name": "audio_play_sound",
+      "signature": "audio_play_sound(sound, priority, loop)",
+      "returns": "Id.AudioPlayback",
+      "description": "Starts playing a sound and returns a playback id.",
+      "params": [
+        {
+          "name": "sound",
+          "type": "Asset.Sound",
+          "description": "Sound asset or emitter source"
+        },
+        {
+          "name": "priority",
+          "type": "Real",
+          "description": "Playback priority"
+        },
+        {
+          "name": "loop",
+          "type": "Bool",
+          "description": "Whether the sound should loop"
+        }
+      ],
+      "category": "audio",
+      "deprecated": false,
+      "tags": [
+        "audio",
+        "playback",
+        "sound"
+      ]
+    },
+    {
+      "name": "audio_stop_sound",
+      "signature": "audio_stop_sound(sound_or_id)",
+      "returns": "N/A",
+      "description": "Stops a sound asset or playback id.",
+      "params": [
+        {
+          "name": "sound_or_id",
+          "type": "Asset.Sound|Id.AudioPlayback",
+          "description": "Sound asset or playback id"
+        }
+      ],
+      "category": "audio",
+      "deprecated": false,
+      "tags": [
+        "audio",
+        "stop"
+      ]
+    },
+    {
+      "name": "audio_pause_sound",
+      "signature": "audio_pause_sound(sound_or_id)",
+      "returns": "N/A",
+      "description": "Pauses a sound asset or playback id.",
+      "params": [
+        {
+          "name": "sound_or_id",
+          "type": "Asset.Sound|Id.AudioPlayback",
+          "description": "Sound asset or playback id"
+        }
+      ],
+      "category": "audio",
+      "deprecated": false,
+      "tags": [
+        "audio",
+        "pause"
+      ]
+    },
+    {
+      "name": "audio_sound_gain",
+      "signature": "audio_sound_gain(sound_or_id, volume, time)",
+      "returns": "N/A",
+      "description": "Changes gain immediately or over time.",
+      "params": [
+        {
+          "name": "sound_or_id",
+          "type": "Asset.Sound|Id.AudioPlayback",
+          "description": "Sound asset or playback id"
+        },
+        {
+          "name": "volume",
+          "type": "Real",
+          "description": "Target volume"
+        },
+        {
+          "name": "time",
+          "type": "Real",
+          "description": "Fade time in milliseconds"
+        }
+      ],
+      "category": "audio",
+      "deprecated": false,
+      "tags": [
+        "audio",
+        "gain",
+        "fade"
+      ]
+    },
+    {
+      "name": "audio_create_stream",
+      "signature": "audio_create_stream(filename)",
+      "returns": "Asset.Sound",
+      "description": "Creates a streamed sound from a file.",
+      "params": [
+        {
+          "name": "filename",
+          "type": "String",
+          "description": "Path to the audio file"
+        }
+      ],
+      "category": "audio",
+      "deprecated": false,
+      "tags": [
+        "audio",
+        "stream"
+      ]
+    },
+    {
+      "name": "audio_play_sound_at",
+      "signature": "audio_play_sound_at(sound, x, y, z, falloff_ref, falloff_max, falloff_factor, loop, priority)",
+      "returns": "Id.AudioPlayback",
+      "description": "Plays a sound in 3D space.",
+      "params": [
+        {
+          "name": "sound",
+          "type": "Asset.Sound",
+          "description": "Sound asset to play"
+        },
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "Sound X position"
+        },
+        {
+          "name": "y",
+          "type": "Real",
+          "description": "Sound Y position"
+        },
+        {
+          "name": "z",
+          "type": "Real",
+          "description": "Sound Z position"
+        },
+        {
+          "name": "falloff_ref",
+          "type": "Real",
+          "description": "Reference distance"
+        },
+        {
+          "name": "falloff_max",
+          "type": "Real",
+          "description": "Maximum distance"
+        },
+        {
+          "name": "falloff_factor",
+          "type": "Real",
+          "description": "Falloff factor"
+        },
+        {
+          "name": "loop",
+          "type": "Bool",
+          "description": "Whether the sound loops"
+        },
+        {
+          "name": "priority",
+          "type": "Real",
+          "description": "Playback priority"
+        }
+      ],
+      "category": "audio",
+      "deprecated": false,
+      "tags": [
+        "audio",
+        "3d",
+        "playback"
+      ]
+    },
+    {
+      "name": "audio_group_load",
+      "signature": "audio_group_load(groupid)",
+      "returns": "Bool",
+      "description": "Loads an audio group into memory.",
+      "params": [
+        {
+          "name": "groupid",
+          "type": "Asset.AudioGroup",
+          "description": "Audio group asset"
+        }
+      ],
+      "category": "audio",
+      "deprecated": false,
+      "tags": [
+        "audio",
+        "group",
+        "load"
+      ]
+    },
+    {
+      "name": "audio_group_unload",
+      "signature": "audio_group_unload(groupid)",
+      "returns": "Bool",
+      "description": "Unloads an audio group from memory.",
+      "params": [
+        {
+          "name": "groupid",
+          "type": "Asset.AudioGroup",
+          "description": "Audio group asset"
+        }
+      ],
+      "category": "audio",
+      "deprecated": false,
+      "tags": [
+        "audio",
+        "group",
+        "unload"
+      ]
+    },
+    {
+      "name": "audio_group_is_loaded",
+      "signature": "audio_group_is_loaded(groupid)",
+      "returns": "Bool",
+      "description": "Checks whether an audio group is loaded.",
+      "params": [
+        {
+          "name": "groupid",
+          "type": "Asset.AudioGroup",
+          "description": "Audio group asset"
+        }
+      ],
+      "category": "audio",
+      "deprecated": false,
+      "tags": [
+        "audio",
+        "group",
+        "query"
+      ]
+    },
+    {
+      "name": "abs",
+      "signature": "abs(x)",
+      "returns": "Real",
+      "description": "Returns the absolute value of a number.",
+      "params": [
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "Input value"
+        }
+      ],
+      "category": "math",
+      "deprecated": false,
+      "tags": [
+        "math",
+        "absolute"
+      ]
+    },
+    {
+      "name": "floor",
+      "signature": "floor(x)",
+      "returns": "Real",
+      "description": "Rounds a number down.",
+      "params": [
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "Input value"
+        }
+      ],
+      "category": "math",
+      "deprecated": false,
+      "tags": [
+        "math",
+        "round"
+      ]
+    },
+    {
+      "name": "ceil",
+      "signature": "ceil(x)",
+      "returns": "Real",
+      "description": "Rounds a number up.",
+      "params": [
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "Input value"
+        }
+      ],
+      "category": "math",
+      "deprecated": false,
+      "tags": [
+        "math",
+        "round"
+      ]
+    },
+    {
+      "name": "round",
+      "signature": "round(x)",
+      "returns": "Real",
+      "description": "Rounds a number to the nearest integer.",
+      "params": [
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "Input value"
+        }
+      ],
+      "category": "math",
+      "deprecated": false,
+      "tags": [
+        "math",
+        "round"
+      ]
+    },
+    {
+      "name": "clamp",
+      "signature": "clamp(val, min, max)",
+      "returns": "Real",
+      "description": "Clamps a value into a range.",
+      "params": [
+        {
+          "name": "val",
+          "type": "Real",
+          "description": "Input value"
+        },
+        {
+          "name": "min",
+          "type": "Real",
+          "description": "Minimum result"
+        },
+        {
+          "name": "max",
+          "type": "Real",
+          "description": "Maximum result"
+        }
+      ],
+      "category": "math",
+      "deprecated": false,
+      "tags": [
+        "math",
+        "range"
+      ]
+    },
+    {
+      "name": "sign",
+      "signature": "sign(x)",
+      "returns": "Real",
+      "description": "Returns -1, 0, or 1 from a number sign.",
+      "params": [
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "Input value"
+        }
+      ],
+      "category": "math",
+      "deprecated": false,
+      "tags": [
+        "math",
+        "sign"
+      ]
+    },
+    {
+      "name": "lerp",
+      "signature": "lerp(val1, val2, amount)",
+      "returns": "Real",
+      "description": "Linearly interpolates between two values.",
+      "params": [
+        {
+          "name": "val1",
+          "type": "Real",
+          "description": "Start value"
+        },
+        {
+          "name": "val2",
+          "type": "Real",
+          "description": "End value"
+        },
+        {
+          "name": "amount",
+          "type": "Real",
+          "description": "Interpolation amount from 0 to 1"
+        }
+      ],
+      "category": "math",
+      "deprecated": false,
+      "tags": [
+        "math",
+        "interpolation"
+      ]
+    },
+    {
+      "name": "damp",
+      "signature": "damp(source, target, smoothing, delta)",
+      "returns": "Real",
+      "description": "Smoothly damps a value toward a target. [Added in 2024.x]",
+      "params": [
+        {
+          "name": "source",
+          "type": "Real",
+          "description": "Current value"
+        },
+        {
+          "name": "target",
+          "type": "Real",
+          "description": "Target value"
+        },
+        {
+          "name": "smoothing",
+          "type": "Real",
+          "description": "Smoothing factor"
+        },
+        {
+          "name": "delta",
+          "type": "Real",
+          "description": "Time step multiplier"
+        }
+      ],
+      "category": "math",
+      "deprecated": false,
+      "tags": [
+        "math",
+        "interpolation",
+        "damp"
+      ]
+    },
+    {
+      "name": "point_distance",
+      "signature": "point_distance(x1, y1, x2, y2)",
+      "returns": "Real",
+      "description": "Returns the distance between two points.",
+      "params": [
+        {
+          "name": "x1",
+          "type": "Real",
+          "description": "First point X"
+        },
+        {
+          "name": "y1",
+          "type": "Real",
+          "description": "First point Y"
+        },
+        {
+          "name": "x2",
+          "type": "Real",
+          "description": "Second point X"
+        },
+        {
+          "name": "y2",
+          "type": "Real",
+          "description": "Second point Y"
+        }
+      ],
+      "category": "math",
+      "deprecated": false,
+      "tags": [
+        "math",
+        "geometry",
+        "distance"
+      ]
+    },
+    {
+      "name": "point_direction",
+      "signature": "point_direction(x1, y1, x2, y2)",
+      "returns": "Real",
+      "description": "Returns the direction from one point to another.",
+      "params": [
+        {
+          "name": "x1",
+          "type": "Real",
+          "description": "Start point X"
+        },
+        {
+          "name": "y1",
+          "type": "Real",
+          "description": "Start point Y"
+        },
+        {
+          "name": "x2",
+          "type": "Real",
+          "description": "End point X"
+        },
+        {
+          "name": "y2",
+          "type": "Real",
+          "description": "End point Y"
+        }
+      ],
+      "category": "math",
+      "deprecated": false,
+      "tags": [
+        "math",
+        "geometry",
+        "direction"
+      ]
+    },
+    {
+      "name": "lengthdir_x",
+      "signature": "lengthdir_x(len, dir)",
+      "returns": "Real",
+      "description": "Returns the X offset for a length and direction.",
+      "params": [
+        {
+          "name": "len",
+          "type": "Real",
+          "description": "Vector length"
+        },
+        {
+          "name": "dir",
+          "type": "Real",
+          "description": "Direction in degrees"
+        }
+      ],
+      "category": "math",
+      "deprecated": false,
+      "tags": [
+        "math",
+        "vector",
+        "x"
+      ]
+    },
+    {
+      "name": "lengthdir_y",
+      "signature": "lengthdir_y(len, dir)",
+      "returns": "Real",
+      "description": "Returns the Y offset for a length and direction.",
+      "params": [
+        {
+          "name": "len",
+          "type": "Real",
+          "description": "Vector length"
+        },
+        {
+          "name": "dir",
+          "type": "Real",
+          "description": "Direction in degrees"
+        }
+      ],
+      "category": "math",
+      "deprecated": false,
+      "tags": [
+        "math",
+        "vector",
+        "y"
+      ]
+    },
+    {
+      "name": "sin",
+      "signature": "sin(x)",
+      "returns": "Real",
+      "description": "Returns the sine of an angle in radians.",
+      "params": [
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "Angle in radians"
+        }
+      ],
+      "category": "math",
+      "deprecated": false,
+      "tags": [
+        "math",
+        "trigonometry"
+      ]
+    },
+    {
+      "name": "cos",
+      "signature": "cos(x)",
+      "returns": "Real",
+      "description": "Returns the cosine of an angle in radians.",
+      "params": [
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "Angle in radians"
+        }
+      ],
+      "category": "math",
+      "deprecated": false,
+      "tags": [
+        "math",
+        "trigonometry"
+      ]
+    },
+    {
+      "name": "tan",
+      "signature": "tan(x)",
+      "returns": "Real",
+      "description": "Returns the tangent of an angle in radians.",
+      "params": [
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "Angle in radians"
+        }
+      ],
+      "category": "math",
+      "deprecated": false,
+      "tags": [
+        "math",
+        "trigonometry"
+      ]
+    },
+    {
+      "name": "arcsin",
+      "signature": "arcsin(x)",
+      "returns": "Real",
+      "description": "Returns the inverse sine of a value.",
+      "params": [
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "Input from -1 to 1"
+        }
+      ],
+      "category": "math",
+      "deprecated": false,
+      "tags": [
+        "math",
+        "trigonometry"
+      ]
+    },
+    {
+      "name": "arccos",
+      "signature": "arccos(x)",
+      "returns": "Real",
+      "description": "Returns the inverse cosine of a value.",
+      "params": [
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "Input from -1 to 1"
+        }
+      ],
+      "category": "math",
+      "deprecated": false,
+      "tags": [
+        "math",
+        "trigonometry"
+      ]
+    },
+    {
+      "name": "arctan2",
+      "signature": "arctan2(y, x)",
+      "returns": "Real",
+      "description": "Returns the angle from X and Y components.",
+      "params": [
+        {
+          "name": "y",
+          "type": "Real",
+          "description": "Y component"
+        },
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "X component"
+        }
+      ],
+      "category": "math",
+      "deprecated": false,
+      "tags": [
+        "math",
+        "trigonometry",
+        "angle"
+      ]
+    },
+    {
+      "name": "random",
+      "signature": "random(n)",
+      "returns": "Real",
+      "description": "Returns a random real from 0 up to n.",
+      "params": [
+        {
+          "name": "n",
+          "type": "Real",
+          "description": "Upper bound"
+        }
+      ],
+      "category": "math",
+      "deprecated": false,
+      "tags": [
+        "math",
+        "random"
+      ]
+    },
+    {
+      "name": "irandom",
+      "signature": "irandom(n)",
+      "returns": "Real",
+      "description": "Returns a random integer from 0 to n.",
+      "params": [
+        {
+          "name": "n",
+          "type": "Real",
+          "description": "Upper bound"
+        }
+      ],
+      "category": "math",
+      "deprecated": false,
+      "tags": [
+        "math",
+        "random",
+        "integer"
+      ]
+    },
+    {
+      "name": "choose",
+      "signature": "choose(val0, val1, ...)",
+      "returns": "Any",
+      "description": "Returns one randomly chosen argument.",
+      "params": [
+        {
+          "name": "val0",
+          "type": "Any",
+          "description": "Candidate value"
+        },
+        {
+          "name": "val1",
+          "type": "Any",
+          "description": "Candidate value"
+        }
+      ],
+      "category": "math",
+      "deprecated": false,
+      "tags": [
+        "math",
+        "random",
+        "selection"
+      ]
+    },
+    {
+      "name": "string",
+      "signature": "string(val)",
+      "returns": "String",
+      "description": "Converts a value to a string.",
+      "params": [
+        {
+          "name": "val",
+          "type": "Any",
+          "description": "Value to convert"
+        }
+      ],
+      "category": "strings",
+      "deprecated": false,
+      "tags": [
+        "string",
+        "conversion"
+      ]
+    },
+    {
+      "name": "string_length",
+      "signature": "string_length(str)",
+      "returns": "Real",
+      "description": "Returns the number of characters in a string.",
+      "params": [
+        {
+          "name": "str",
+          "type": "String",
+          "description": "Input string"
+        }
+      ],
+      "category": "strings",
+      "deprecated": false,
+      "tags": [
+        "string",
+        "length"
+      ]
+    },
+    {
+      "name": "string_pos",
+      "signature": "string_pos(substr, str)",
+      "returns": "Real",
+      "description": "Returns the first position of a substring.",
+      "params": [
+        {
+          "name": "substr",
+          "type": "String",
+          "description": "Substring to find"
+        },
+        {
+          "name": "str",
+          "type": "String",
+          "description": "String to search"
+        }
+      ],
+      "category": "strings",
+      "deprecated": false,
+      "tags": [
+        "string",
+        "search"
+      ]
+    },
+    {
+      "name": "string_copy",
+      "signature": "string_copy(str, index, count)",
+      "returns": "String",
+      "description": "Copies a substring from a string.",
+      "params": [
+        {
+          "name": "str",
+          "type": "String",
+          "description": "Input string"
+        },
+        {
+          "name": "index",
+          "type": "Real",
+          "description": "One-based start index"
+        },
+        {
+          "name": "count",
+          "type": "Real",
+          "description": "Character count"
+        }
+      ],
+      "category": "strings",
+      "deprecated": false,
+      "tags": [
+        "string",
+        "substring"
+      ]
+    },
+    {
+      "name": "string_replace",
+      "signature": "string_replace(str, substr, newstr)",
+      "returns": "String",
+      "description": "Replaces the first matching substring.",
+      "params": [
+        {
+          "name": "str",
+          "type": "String",
+          "description": "Source string"
+        },
+        {
+          "name": "substr",
+          "type": "String",
+          "description": "Substring to replace"
+        },
+        {
+          "name": "newstr",
+          "type": "String",
+          "description": "Replacement text"
+        }
+      ],
+      "category": "strings",
+      "deprecated": false,
+      "tags": [
+        "string",
+        "replace"
+      ]
+    },
+    {
+      "name": "string_lower",
+      "signature": "string_lower(str)",
+      "returns": "String",
+      "description": "Returns a string in lowercase.",
+      "params": [
+        {
+          "name": "str",
+          "type": "String",
+          "description": "Source string"
+        }
+      ],
+      "category": "strings",
+      "deprecated": false,
+      "tags": [
+        "string",
+        "case"
+      ]
+    },
+    {
+      "name": "string_upper",
+      "signature": "string_upper(str)",
+      "returns": "String",
+      "description": "Returns a string in uppercase.",
+      "params": [
+        {
+          "name": "str",
+          "type": "String",
+          "description": "Source string"
+        }
+      ],
+      "category": "strings",
+      "deprecated": false,
+      "tags": [
+        "string",
+        "case"
+      ]
+    },
+    {
+      "name": "string_split",
+      "signature": "string_split(str, delimiter, [remove_empty], [max_splits])",
+      "returns": "Array<String>",
+      "description": "Splits a string into an array of substrings.",
+      "params": [
+        {
+          "name": "str",
+          "type": "String",
+          "description": "Source string"
+        },
+        {
+          "name": "delimiter",
+          "type": "String",
+          "description": "Delimiter string"
+        },
+        {
+          "name": "remove_empty",
+          "type": "Bool",
+          "optional": true,
+          "description": "Drop empty entries when true"
+        },
+        {
+          "name": "max_splits",
+          "type": "Real",
+          "optional": true,
+          "description": "Optional split limit"
+        }
+      ],
+      "category": "strings",
+      "deprecated": false,
+      "tags": [
+        "string",
+        "array",
+        "split"
+      ]
+    },
+    {
+      "name": "array_length",
+      "signature": "array_length(array)",
+      "returns": "Real",
+      "description": "Returns the number of items in an array.",
+      "params": [
+        {
+          "name": "array",
+          "type": "Array",
+          "description": "Array to inspect"
+        }
+      ],
+      "category": "arrays",
+      "deprecated": false,
+      "tags": [
+        "array",
+        "length"
+      ]
+    },
+    {
+      "name": "array_push",
+      "signature": "array_push(array, value)",
+      "returns": "Real",
+      "description": "Appends one or more values to an array.",
+      "params": [
+        {
+          "name": "array",
+          "type": "Array",
+          "description": "Target array"
+        },
+        {
+          "name": "value",
+          "type": "Any",
+          "description": "Value to append"
+        }
+      ],
+      "category": "arrays",
+      "deprecated": false,
+      "tags": [
+        "array",
+        "append"
+      ]
+    },
+    {
+      "name": "array_pop",
+      "signature": "array_pop(array)",
+      "returns": "Any",
+      "description": "Removes and returns the last array value.",
+      "params": [
+        {
+          "name": "array",
+          "type": "Array",
+          "description": "Target array"
+        }
+      ],
+      "category": "arrays",
+      "deprecated": false,
+      "tags": [
+        "array",
+        "remove"
+      ]
+    },
+    {
+      "name": "array_insert",
+      "signature": "array_insert(array, index, value)",
+      "returns": "N/A",
+      "description": "Inserts a value into an array.",
+      "params": [
+        {
+          "name": "array",
+          "type": "Array",
+          "description": "Target array"
+        },
+        {
+          "name": "index",
+          "type": "Real",
+          "description": "Insert position"
+        },
+        {
+          "name": "value",
+          "type": "Any",
+          "description": "Value to insert"
+        }
+      ],
+      "category": "arrays",
+      "deprecated": false,
+      "tags": [
+        "array",
+        "insert"
+      ]
+    },
+    {
+      "name": "array_delete",
+      "signature": "array_delete(array, index, number)",
+      "returns": "N/A",
+      "description": "Deletes one or more values from an array.",
+      "params": [
+        {
+          "name": "array",
+          "type": "Array",
+          "description": "Target array"
+        },
+        {
+          "name": "index",
+          "type": "Real",
+          "description": "Start index"
+        },
+        {
+          "name": "number",
+          "type": "Real",
+          "description": "Number of values to delete"
+        }
+      ],
+      "category": "arrays",
+      "deprecated": false,
+      "tags": [
+        "array",
+        "delete"
+      ]
+    },
+    {
+      "name": "array_copy",
+      "signature": "array_copy(dest, dest_index, src, src_index, length)",
+      "returns": "N/A",
+      "description": "Copies a range of values between arrays.",
+      "params": [
+        {
+          "name": "dest",
+          "type": "Array",
+          "description": "Destination array"
+        },
+        {
+          "name": "dest_index",
+          "type": "Real",
+          "description": "Destination start index"
+        },
+        {
+          "name": "src",
+          "type": "Array",
+          "description": "Source array"
+        },
+        {
+          "name": "src_index",
+          "type": "Real",
+          "description": "Source start index"
+        },
+        {
+          "name": "length",
+          "type": "Real",
+          "description": "Number of items to copy"
+        }
+      ],
+      "category": "arrays",
+      "deprecated": false,
+      "tags": [
+        "array",
+        "copy"
+      ]
+    },
+    {
+      "name": "array_contains",
+      "signature": "array_contains(array, value)",
+      "returns": "Bool",
+      "description": "Checks whether an array contains a value.",
+      "params": [
+        {
+          "name": "array",
+          "type": "Array",
+          "description": "Array to search"
+        },
+        {
+          "name": "value",
+          "type": "Any",
+          "description": "Value to find"
+        }
+      ],
+      "category": "arrays",
+      "deprecated": false,
+      "tags": [
+        "array",
+        "search"
+      ]
+    },
+    {
+      "name": "array_sort",
+      "signature": "array_sort(array, ascending)",
+      "returns": "N/A",
+      "description": "Sorts an array in place.",
+      "params": [
+        {
+          "name": "array",
+          "type": "Array",
+          "description": "Array to sort"
+        },
+        {
+          "name": "ascending",
+          "type": "Bool",
+          "description": "Sort order flag"
+        }
+      ],
+      "category": "arrays",
+      "deprecated": false,
+      "tags": [
+        "array",
+        "sort"
+      ]
+    },
+    {
+      "name": "array_map",
+      "signature": "array_map(array, function)",
+      "returns": "Array",
+      "description": "Returns a mapped array using a callback.",
+      "params": [
+        {
+          "name": "array",
+          "type": "Array",
+          "description": "Source array"
+        },
+        {
+          "name": "function",
+          "type": "Function",
+          "description": "Mapper callback"
+        }
+      ],
+      "category": "arrays",
+      "deprecated": false,
+      "tags": [
+        "array",
+        "functional",
+        "map"
+      ]
+    },
+    {
+      "name": "array_filter",
+      "signature": "array_filter(array, function)",
+      "returns": "Array",
+      "description": "Returns a filtered array using a callback.",
+      "params": [
+        {
+          "name": "array",
+          "type": "Array",
+          "description": "Source array"
+        },
+        {
+          "name": "function",
+          "type": "Function",
+          "description": "Predicate callback"
+        }
+      ],
+      "category": "arrays",
+      "deprecated": false,
+      "tags": [
+        "array",
+        "functional",
+        "filter"
+      ]
+    },
+    {
+      "name": "array_reduce",
+      "signature": "array_reduce(array, function, initial)",
+      "returns": "Any",
+      "description": "Reduces an array to one accumulated value.",
+      "params": [
+        {
+          "name": "array",
+          "type": "Array",
+          "description": "Source array"
+        },
+        {
+          "name": "function",
+          "type": "Function",
+          "description": "Reducer callback"
+        },
+        {
+          "name": "initial",
+          "type": "Any",
+          "description": "Initial accumulator value"
+        }
+      ],
+      "category": "arrays",
+      "deprecated": false,
+      "tags": [
+        "array",
+        "functional",
+        "reduce"
+      ]
+    },
+    {
+      "name": "ds_map_create",
+      "signature": "ds_map_create()",
+      "returns": "Id.DSMap",
+      "description": "Creates a ds_map and returns its id.",
+      "params": [],
+      "category": "ds_map",
+      "deprecated": false,
+      "tags": [
+        "ds_map",
+        "create"
+      ]
+    },
+    {
+      "name": "ds_map_add",
+      "signature": "ds_map_add(id, key, val)",
+      "returns": "Bool",
+      "description": "Adds a key-value pair to a ds_map.",
+      "params": [
+        {
+          "name": "id",
+          "type": "Id.DSMap",
+          "description": "Map id"
+        },
+        {
+          "name": "key",
+          "type": "String|Real",
+          "description": "Map key"
+        },
+        {
+          "name": "val",
+          "type": "Any",
+          "description": "Value to store"
+        }
+      ],
+      "category": "ds_map",
+      "deprecated": false,
+      "tags": [
+        "ds_map",
+        "write"
+      ]
+    },
+    {
+      "name": "ds_map_find_value",
+      "signature": "ds_map_find_value(id, key)",
+      "returns": "Any|undefined",
+      "description": "Returns a ds_map value or undefined.",
+      "params": [
+        {
+          "name": "id",
+          "type": "Id.DSMap",
+          "description": "Map id"
+        },
+        {
+          "name": "key",
+          "type": "String|Real",
+          "description": "Map key"
+        }
+      ],
+      "category": "ds_map",
+      "deprecated": false,
+      "tags": [
+        "ds_map",
+        "read"
+      ]
+    },
+    {
+      "name": "ds_map_exists",
+      "signature": "ds_map_exists(id, key)",
+      "returns": "Bool",
+      "description": "Checks whether a ds_map key exists.",
+      "params": [
+        {
+          "name": "id",
+          "type": "Id.DSMap",
+          "description": "Map id"
+        },
+        {
+          "name": "key",
+          "type": "String|Real",
+          "description": "Map key"
+        }
+      ],
+      "category": "ds_map",
+      "deprecated": false,
+      "tags": [
+        "ds_map",
+        "query"
+      ]
+    },
+    {
+      "name": "ds_map_delete",
+      "signature": "ds_map_delete(id, key)",
+      "returns": "N/A",
+      "description": "Deletes a key from a ds_map.",
+      "params": [
+        {
+          "name": "id",
+          "type": "Id.DSMap",
+          "description": "Map id"
+        },
+        {
+          "name": "key",
+          "type": "String|Real",
+          "description": "Map key to remove"
+        }
+      ],
+      "category": "ds_map",
+      "deprecated": false,
+      "tags": [
+        "ds_map",
+        "delete"
+      ]
+    },
+    {
+      "name": "ds_map_destroy",
+      "signature": "ds_map_destroy(id)",
+      "returns": "N/A",
+      "description": "Destroys a ds_map and frees memory.",
+      "params": [
+        {
+          "name": "id",
+          "type": "Id.DSMap",
+          "description": "Map id to destroy"
+        }
+      ],
+      "category": "ds_map",
+      "deprecated": false,
+      "tags": [
+        "ds_map",
+        "destroy"
+      ]
+    },
+    {
+      "name": "ds_list_create",
+      "signature": "ds_list_create()",
+      "returns": "Id.DSList",
+      "description": "Creates a ds_list and returns its id.",
+      "params": [],
+      "category": "ds_list",
+      "deprecated": false,
+      "tags": [
+        "ds_list",
+        "create"
+      ]
+    },
+    {
+      "name": "ds_list_add",
+      "signature": "ds_list_add(id, val)",
+      "returns": "N/A",
+      "description": "Adds one or more values to a ds_list.",
+      "params": [
+        {
+          "name": "id",
+          "type": "Id.DSList",
+          "description": "List id"
+        },
+        {
+          "name": "val",
+          "type": "Any",
+          "description": "Value to add"
+        }
+      ],
+      "category": "ds_list",
+      "deprecated": false,
+      "tags": [
+        "ds_list",
+        "write"
+      ]
+    },
+    {
+      "name": "ds_list_find_value",
+      "signature": "ds_list_find_value(id, pos)",
+      "returns": "Any",
+      "description": "Returns a value from a ds_list position.",
+      "params": [
+        {
+          "name": "id",
+          "type": "Id.DSList",
+          "description": "List id"
+        },
+        {
+          "name": "pos",
+          "type": "Real",
+          "description": "Zero-based position"
+        }
+      ],
+      "category": "ds_list",
+      "deprecated": false,
+      "tags": [
+        "ds_list",
+        "read"
+      ]
+    },
+    {
+      "name": "ds_list_size",
+      "signature": "ds_list_size(id)",
+      "returns": "Real",
+      "description": "Returns how many values a ds_list holds.",
+      "params": [
+        {
+          "name": "id",
+          "type": "Id.DSList",
+          "description": "List id"
+        }
+      ],
+      "category": "ds_list",
+      "deprecated": false,
+      "tags": [
+        "ds_list",
+        "size"
+      ]
+    },
+    {
+      "name": "ds_list_delete",
+      "signature": "ds_list_delete(id, pos)",
+      "returns": "N/A",
+      "description": "Deletes a value from a ds_list.",
+      "params": [
+        {
+          "name": "id",
+          "type": "Id.DSList",
+          "description": "List id"
+        },
+        {
+          "name": "pos",
+          "type": "Real",
+          "description": "Zero-based position"
+        }
+      ],
+      "category": "ds_list",
+      "deprecated": false,
+      "tags": [
+        "ds_list",
+        "delete"
+      ]
+    },
+    {
+      "name": "ds_list_destroy",
+      "signature": "ds_list_destroy(id)",
+      "returns": "N/A",
+      "description": "Destroys a ds_list and frees memory.",
+      "params": [
+        {
+          "name": "id",
+          "type": "Id.DSList",
+          "description": "List id to destroy"
+        }
+      ],
+      "category": "ds_list",
+      "deprecated": false,
+      "tags": [
+        "ds_list",
+        "destroy"
+      ]
+    },
+    {
+      "name": "ds_grid_create",
+      "signature": "ds_grid_create(w, h)",
+      "returns": "Id.DSGrid",
+      "description": "Creates a ds_grid and returns its id.",
+      "params": [
+        {
+          "name": "w",
+          "type": "Real",
+          "description": "Grid width in cells"
+        },
+        {
+          "name": "h",
+          "type": "Real",
+          "description": "Grid height in cells"
+        }
+      ],
+      "category": "ds_grid",
+      "deprecated": false,
+      "tags": [
+        "ds_grid",
+        "create"
+      ]
+    },
+    {
+      "name": "ds_grid_set",
+      "signature": "ds_grid_set(id, x, y, val)",
+      "returns": "N/A",
+      "description": "Sets a value in a ds_grid cell.",
+      "params": [
+        {
+          "name": "id",
+          "type": "Id.DSGrid",
+          "description": "Grid id"
+        },
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "Cell X index"
+        },
+        {
+          "name": "y",
+          "type": "Real",
+          "description": "Cell Y index"
+        },
+        {
+          "name": "val",
+          "type": "Any",
+          "description": "Value to store"
+        }
+      ],
+      "category": "ds_grid",
+      "deprecated": false,
+      "tags": [
+        "ds_grid",
+        "write"
+      ]
+    },
+    {
+      "name": "ds_grid_get",
+      "signature": "ds_grid_get(id, x, y)",
+      "returns": "Any",
+      "description": "Gets a value from a ds_grid cell.",
+      "params": [
+        {
+          "name": "id",
+          "type": "Id.DSGrid",
+          "description": "Grid id"
+        },
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "Cell X index"
+        },
+        {
+          "name": "y",
+          "type": "Real",
+          "description": "Cell Y index"
+        }
+      ],
+      "category": "ds_grid",
+      "deprecated": false,
+      "tags": [
+        "ds_grid",
+        "read"
+      ]
+    },
+    {
+      "name": "ds_grid_clear",
+      "signature": "ds_grid_clear(id, val)",
+      "returns": "N/A",
+      "description": "Fills every cell in a ds_grid.",
+      "params": [
+        {
+          "name": "id",
+          "type": "Id.DSGrid",
+          "description": "Grid id"
+        },
+        {
+          "name": "val",
+          "type": "Any",
+          "description": "Fill value"
+        }
+      ],
+      "category": "ds_grid",
+      "deprecated": false,
+      "tags": [
+        "ds_grid",
+        "fill"
+      ]
+    },
+    {
+      "name": "ds_grid_destroy",
+      "signature": "ds_grid_destroy(id)",
+      "returns": "N/A",
+      "description": "Destroys a ds_grid and frees memory.",
+      "params": [
+        {
+          "name": "id",
+          "type": "Id.DSGrid",
+          "description": "Grid id to destroy"
+        }
+      ],
+      "category": "ds_grid",
+      "deprecated": false,
+      "tags": [
+        "ds_grid",
+        "destroy"
+      ]
+    },
+    {
+      "name": "ds_priority_create",
+      "signature": "ds_priority_create()",
+      "returns": "Id.DSPriority",
+      "description": "Creates a ds_priority queue.",
+      "params": [],
+      "category": "ds_priority",
+      "deprecated": false,
+      "tags": [
+        "ds_priority",
+        "create"
+      ]
+    },
+    {
+      "name": "ds_priority_destroy",
+      "signature": "ds_priority_destroy(id)",
+      "returns": "N/A",
+      "description": "Destroys a ds_priority queue.",
+      "params": [
+        {
+          "name": "id",
+          "type": "Id.DSPriority",
+          "description": "Priority queue id"
+        }
+      ],
+      "category": "ds_priority",
+      "deprecated": false,
+      "tags": [
+        "ds_priority",
+        "destroy"
+      ]
+    },
+    {
+      "name": "ds_stack_create",
+      "signature": "ds_stack_create()",
+      "returns": "Id.DSStack",
+      "description": "Creates a ds_stack and returns its id.",
+      "params": [],
+      "category": "ds_stack",
+      "deprecated": false,
+      "tags": [
+        "ds_stack",
+        "create"
+      ]
+    },
+    {
+      "name": "ds_stack_destroy",
+      "signature": "ds_stack_destroy(id)",
+      "returns": "N/A",
+      "description": "Destroys a ds_stack and frees memory.",
+      "params": [
+        {
+          "name": "id",
+          "type": "Id.DSStack",
+          "description": "Stack id"
+        }
+      ],
+      "category": "ds_stack",
+      "deprecated": false,
+      "tags": [
+        "ds_stack",
+        "destroy"
+      ]
+    },
+    {
+      "name": "ds_queue_create",
+      "signature": "ds_queue_create()",
+      "returns": "Id.DSQueue",
+      "description": "Creates a ds_queue and returns its id.",
+      "params": [],
+      "category": "ds_queue",
+      "deprecated": false,
+      "tags": [
+        "ds_queue",
+        "create"
+      ]
+    },
+    {
+      "name": "ds_queue_destroy",
+      "signature": "ds_queue_destroy(id)",
+      "returns": "N/A",
+      "description": "Destroys a ds_queue and frees memory.",
+      "params": [
+        {
+          "name": "id",
+          "type": "Id.DSQueue",
+          "description": "Queue id"
+        }
+      ],
+      "category": "ds_queue",
+      "deprecated": false,
+      "tags": [
+        "ds_queue",
+        "destroy"
+      ]
+    },
+    {
+      "name": "json_stringify",
+      "signature": "json_stringify(value, [prettify])",
+      "returns": "String",
+      "description": "Converts a struct or array to JSON text.",
+      "params": [
+        {
+          "name": "value",
+          "type": "Struct|Array",
+          "description": "Value to serialize"
+        },
+        {
+          "name": "prettify",
+          "type": "Bool",
+          "optional": true,
+          "description": "Pretty-print output"
+        }
+      ],
+      "category": "json",
+      "deprecated": false,
+      "tags": [
+        "json",
+        "serialize"
+      ]
+    },
+    {
+      "name": "json_parse",
+      "signature": "json_parse(str, [inhibit_string_convert])",
+      "returns": "Any",
+      "description": "Parses JSON text into structs and arrays.",
+      "params": [
+        {
+          "name": "str",
+          "type": "String",
+          "description": "JSON source text"
+        },
+        {
+          "name": "inhibit_string_convert",
+          "type": "Bool",
+          "optional": true,
+          "description": "Disable numeric string conversion"
+        }
+      ],
+      "category": "json",
+      "deprecated": false,
+      "tags": [
+        "json",
+        "parse"
+      ]
+    },
+    {
+      "name": "file_text_open_read",
+      "signature": "file_text_open_read(fname)",
+      "returns": "Real",
+      "description": "Opens a text file for reading.",
+      "params": [
+        {
+          "name": "fname",
+          "type": "String",
+          "description": "Path to the text file"
+        }
+      ],
+      "category": "file_io",
+      "deprecated": false,
+      "tags": [
+        "file",
+        "text",
+        "read"
+      ]
+    },
+    {
+      "name": "file_text_open_write",
+      "signature": "file_text_open_write(fname)",
+      "returns": "Real",
+      "description": "Opens a text file for writing.",
+      "params": [
+        {
+          "name": "fname",
+          "type": "String",
+          "description": "Path to the text file"
+        }
+      ],
+      "category": "file_io",
+      "deprecated": false,
+      "tags": [
+        "file",
+        "text",
+        "write"
+      ]
+    },
+    {
+      "name": "file_text_open_append",
+      "signature": "file_text_open_append(fname)",
+      "returns": "Real",
+      "description": "Opens a text file for appending.",
+      "params": [
+        {
+          "name": "fname",
+          "type": "String",
+          "description": "Path to the text file"
+        }
+      ],
+      "category": "file_io",
+      "deprecated": false,
+      "tags": [
+        "file",
+        "text",
+        "append"
+      ]
+    },
+    {
+      "name": "file_text_read_string",
+      "signature": "file_text_read_string(fileid)",
+      "returns": "String",
+      "description": "Reads a string token from a text file.",
+      "params": [
+        {
+          "name": "fileid",
+          "type": "Real",
+          "description": "Open file handle"
+        }
+      ],
+      "category": "file_io",
+      "deprecated": false,
+      "tags": [
+        "file",
+        "text",
+        "read"
+      ]
+    },
+    {
+      "name": "file_text_read_real",
+      "signature": "file_text_read_real(fileid)",
+      "returns": "Real",
+      "description": "Reads a real value from a text file.",
+      "params": [
+        {
+          "name": "fileid",
+          "type": "Real",
+          "description": "Open file handle"
+        }
+      ],
+      "category": "file_io",
+      "deprecated": false,
+      "tags": [
+        "file",
+        "text",
+        "read"
+      ]
+    },
+    {
+      "name": "file_text_write_string",
+      "signature": "file_text_write_string(fileid, str)",
+      "returns": "N/A",
+      "description": "Writes a string to a text file.",
+      "params": [
+        {
+          "name": "fileid",
+          "type": "Real",
+          "description": "Open file handle"
+        },
+        {
+          "name": "str",
+          "type": "String",
+          "description": "String to write"
+        }
+      ],
+      "category": "file_io",
+      "deprecated": false,
+      "tags": [
+        "file",
+        "text",
+        "write"
+      ]
+    },
+    {
+      "name": "file_text_writeln",
+      "signature": "file_text_writeln(fileid)",
+      "returns": "N/A",
+      "description": "Writes a line break to a text file.",
+      "params": [
+        {
+          "name": "fileid",
+          "type": "Real",
+          "description": "Open file handle"
+        }
+      ],
+      "category": "file_io",
+      "deprecated": false,
+      "tags": [
+        "file",
+        "text",
+        "write"
+      ]
+    },
+    {
+      "name": "file_text_close",
+      "signature": "file_text_close(fileid)",
+      "returns": "N/A",
+      "description": "Closes an open text file handle.",
+      "params": [
+        {
+          "name": "fileid",
+          "type": "Real",
+          "description": "Open file handle"
+        }
+      ],
+      "category": "file_io",
+      "deprecated": false,
+      "tags": [
+        "file",
+        "text",
+        "close"
+      ]
+    },
+    {
+      "name": "file_exists",
+      "signature": "file_exists(fname)",
+      "returns": "Bool",
+      "description": "Checks whether a file exists.",
+      "params": [
+        {
+          "name": "fname",
+          "type": "String",
+          "description": "Path to test"
+        }
+      ],
+      "category": "file_io",
+      "deprecated": false,
+      "tags": [
+        "file",
+        "query"
+      ]
+    },
+    {
+      "name": "ini_open",
+      "signature": "ini_open(fname)",
+      "returns": "N/A",
+      "description": "Opens an INI file for reading and writing.",
+      "params": [
+        {
+          "name": "fname",
+          "type": "String",
+          "description": "INI file path"
+        }
+      ],
+      "category": "file_io",
+      "deprecated": false,
+      "tags": [
+        "ini",
+        "file"
+      ]
+    },
+    {
+      "name": "ini_write_real",
+      "signature": "ini_write_real(section, key, value)",
+      "returns": "N/A",
+      "description": "Writes a real value into an INI file.",
+      "params": [
+        {
+          "name": "section",
+          "type": "String",
+          "description": "Section name"
+        },
+        {
+          "name": "key",
+          "type": "String",
+          "description": "Key name"
+        },
+        {
+          "name": "value",
+          "type": "Real",
+          "description": "Value to write"
+        }
+      ],
+      "category": "file_io",
+      "deprecated": false,
+      "tags": [
+        "ini",
+        "write"
+      ]
+    },
+    {
+      "name": "ini_close",
+      "signature": "ini_close()",
+      "returns": "N/A",
+      "description": "Closes the currently open INI file.",
+      "params": [],
+      "category": "file_io",
+      "deprecated": false,
+      "tags": [
+        "ini",
+        "close"
+      ]
+    },
+    {
+      "name": "network_create_socket",
+      "signature": "network_create_socket(type)",
+      "returns": "Real",
+      "description": "Creates a network socket.",
+      "params": [
+        {
+          "name": "type",
+          "type": "NetworkSocketType",
+          "description": "Socket type constant"
+        }
+      ],
+      "category": "networking",
+      "deprecated": false,
+      "tags": [
+        "network",
+        "socket",
+        "create"
+      ]
+    },
+    {
+      "name": "network_connect",
+      "signature": "network_connect(socket, url, port)",
+      "returns": "Bool",
+      "description": "Connects a socket to a host and port.",
+      "params": [
+        {
+          "name": "socket",
+          "type": "Real",
+          "description": "Socket id"
+        },
+        {
+          "name": "url",
+          "type": "String",
+          "description": "Host name or IP address"
+        },
+        {
+          "name": "port",
+          "type": "Real",
+          "description": "Remote port"
+        }
+      ],
+      "category": "networking",
+      "deprecated": false,
+      "tags": [
+        "network",
+        "socket",
+        "connect"
+      ]
+    },
+    {
+      "name": "network_send_packet",
+      "signature": "network_send_packet(socket, buffer, size)",
+      "returns": "Real",
+      "description": "Sends bytes from a buffer through a socket.",
+      "params": [
+        {
+          "name": "socket",
+          "type": "Real",
+          "description": "Socket id"
+        },
+        {
+          "name": "buffer",
+          "type": "Id.Buffer",
+          "description": "Buffer id to send"
+        },
+        {
+          "name": "size",
+          "type": "Real",
+          "description": "Byte count to send"
+        }
+      ],
+      "category": "networking",
+      "deprecated": false,
+      "tags": [
+        "network",
+        "packet",
+        "buffer"
+      ]
+    },
+    {
+      "name": "network_send_raw",
+      "signature": "network_send_raw(socket, buffer, size)",
+      "returns": "Real",
+      "description": "Sends raw data through a socket.",
+      "params": [
+        {
+          "name": "socket",
+          "type": "Real",
+          "description": "Socket id"
+        },
+        {
+          "name": "buffer",
+          "type": "Id.Buffer",
+          "description": "Buffer id to send"
+        },
+        {
+          "name": "size",
+          "type": "Real",
+          "description": "Byte count to send"
+        }
+      ],
+      "category": "networking",
+      "deprecated": false,
+      "tags": [
+        "network",
+        "raw",
+        "buffer"
+      ]
+    },
+    {
+      "name": "buffer_create",
+      "signature": "buffer_create(size, type, alignment)",
+      "returns": "Id.Buffer",
+      "description": "Creates a buffer and returns its id.",
+      "params": [
+        {
+          "name": "size",
+          "type": "Real",
+          "description": "Initial buffer size in bytes"
+        },
+        {
+          "name": "type",
+          "type": "BufferType",
+          "description": "Buffer type constant"
+        },
+        {
+          "name": "alignment",
+          "type": "Real",
+          "description": "Byte alignment"
+        }
+      ],
+      "category": "networking",
+      "deprecated": false,
+      "tags": [
+        "buffer",
+        "create"
+      ]
+    },
+    {
+      "name": "buffer_write",
+      "signature": "buffer_write(buffer, type, value)",
+      "returns": "N/A",
+      "description": "Writes a typed value into a buffer.",
+      "params": [
+        {
+          "name": "buffer",
+          "type": "Id.Buffer",
+          "description": "Buffer id"
+        },
+        {
+          "name": "type",
+          "type": "BufferValueType",
+          "description": "Value type constant"
+        },
+        {
+          "name": "value",
+          "type": "Any",
+          "description": "Value to write"
+        }
+      ],
+      "category": "networking",
+      "deprecated": false,
+      "tags": [
+        "buffer",
+        "write"
+      ]
+    },
+    {
+      "name": "buffer_tell",
+      "signature": "buffer_tell(buffer)",
+      "returns": "Real",
+      "description": "Returns the current cursor position in a buffer.",
+      "params": [
+        {
+          "name": "buffer",
+          "type": "Id.Buffer",
+          "description": "Buffer id"
+        }
+      ],
+      "category": "networking",
+      "deprecated": false,
+      "tags": [
+        "buffer",
+        "cursor"
+      ]
+    },
+    {
+      "name": "buffer_delete",
+      "signature": "buffer_delete(buffer)",
+      "returns": "N/A",
+      "description": "Deletes a buffer and frees memory.",
+      "params": [
+        {
+          "name": "buffer",
+          "type": "Id.Buffer",
+          "description": "Buffer id"
+        }
+      ],
+      "category": "networking",
+      "deprecated": false,
+      "tags": [
+        "buffer",
+        "destroy"
+      ]
+    },
+    {
+      "name": "http_get",
+      "signature": "http_get(url)",
+      "returns": "Real",
+      "description": "Starts an HTTP GET request and returns its id.",
+      "params": [
+        {
+          "name": "url",
+          "type": "String",
+          "description": "Request URL"
+        }
+      ],
+      "category": "networking",
+      "deprecated": false,
+      "tags": [
+        "http",
+        "get",
+        "async"
+      ]
+    },
+    {
+      "name": "http_post_string",
+      "signature": "http_post_string(url, string)",
+      "returns": "Real",
+      "description": "Starts an HTTP POST request with a string body.",
+      "params": [
+        {
+          "name": "url",
+          "type": "String",
+          "description": "Request URL"
+        },
+        {
+          "name": "string",
+          "type": "String",
+          "description": "Request body"
+        }
+      ],
+      "category": "networking",
+      "deprecated": false,
+      "tags": [
+        "http",
+        "post",
+        "async"
+      ]
+    },
+    {
+      "name": "event_perform",
+      "signature": "event_perform(type, numb)",
+      "returns": "N/A",
+      "description": "Runs another event on the current instance.",
+      "params": [
+        {
+          "name": "type",
+          "type": "EventType",
+          "description": "Event type constant"
+        },
+        {
+          "name": "numb",
+          "type": "Real|EventNumber",
+          "description": "Sub-event number or constant"
+        }
+      ],
+      "category": "events",
+      "deprecated": false,
+      "tags": [
+        "event",
+        "perform"
+      ]
+    },
+    {
+      "name": "event_inherited",
+      "signature": "event_inherited()",
+      "returns": "N/A",
+      "description": "Runs the inherited parent event code.",
+      "params": [],
+      "category": "events",
+      "deprecated": false,
+      "tags": [
+        "event",
+        "inheritance"
+      ]
+    },
+    {
+      "name": "event_user",
+      "signature": "event_user(numb)",
+      "returns": "N/A",
+      "description": "Runs a user event on the current instance.",
+      "params": [
+        {
+          "name": "numb",
+          "type": "Real",
+          "description": "User event number from 0 to 15"
+        }
+      ],
+      "category": "events",
+      "deprecated": false,
+      "tags": [
+        "event",
+        "user"
+      ]
+    },
+    {
+      "name": "variable_instance_exists",
+      "signature": "variable_instance_exists(id, name)",
+      "returns": "Bool",
+      "description": "Checks whether an instance variable exists.",
+      "params": [
+        {
+          "name": "id",
+          "type": "Id.Instance",
+          "description": "Instance id to inspect"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "Variable name"
+        }
+      ],
+      "category": "variables",
+      "deprecated": false,
+      "tags": [
+        "variable",
+        "instance",
+        "query"
+      ]
+    },
+    {
+      "name": "variable_instance_get",
+      "signature": "variable_instance_get(id, name)",
+      "returns": "Any",
+      "description": "Gets a variable value from an instance.",
+      "params": [
+        {
+          "name": "id",
+          "type": "Id.Instance",
+          "description": "Instance id to inspect"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "Variable name"
+        }
+      ],
+      "category": "variables",
+      "deprecated": false,
+      "tags": [
+        "variable",
+        "instance",
+        "read"
+      ]
+    },
+    {
+      "name": "variable_global_exists",
+      "signature": "variable_global_exists(name)",
+      "returns": "Bool",
+      "description": "Checks whether a global variable exists.",
+      "params": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "Variable name"
+        }
+      ],
+      "category": "variables",
+      "deprecated": false,
+      "tags": [
+        "variable",
+        "global",
+        "query"
+      ]
+    },
+    {
+      "name": "variable_struct_exists",
+      "signature": "variable_struct_exists(struct, name)",
+      "returns": "Bool",
+      "description": "Checks whether a struct field exists.",
+      "params": [
+        {
+          "name": "struct",
+          "type": "Struct",
+          "description": "Struct to inspect"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "Field name"
+        }
+      ],
+      "category": "variables",
+      "deprecated": false,
+      "tags": [
+        "variable",
+        "struct",
+        "query"
+      ]
+    },
+    {
+      "name": "variable_struct_get",
+      "signature": "variable_struct_get(struct, name)",
+      "returns": "Any",
+      "description": "Gets a field value from a struct.",
+      "params": [
+        {
+          "name": "struct",
+          "type": "Struct",
+          "description": "Struct to inspect"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "Field name"
+        }
+      ],
+      "category": "variables",
+      "deprecated": false,
+      "tags": [
+        "variable",
+        "struct",
+        "read"
+      ]
+    },
+    {
+      "name": "variable_struct_set",
+      "signature": "variable_struct_set(struct, name, value)",
+      "returns": "N/A",
+      "description": "Sets a field value on a struct.",
+      "params": [
+        {
+          "name": "struct",
+          "type": "Struct",
+          "description": "Struct to modify"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "Field name"
+        },
+        {
+          "name": "value",
+          "type": "Any",
+          "description": "Value to assign"
+        }
+      ],
+      "category": "variables",
+      "deprecated": false,
+      "tags": [
+        "variable",
+        "struct",
+        "write"
+      ]
+    },
+    {
+      "name": "move_towards_point",
+      "signature": "move_towards_point(x, y, speed)",
+      "returns": "N/A",
+      "description": "Sets direction and speed toward a point.",
+      "params": [
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "Target X position"
+        },
+        {
+          "name": "y",
+          "type": "Real",
+          "description": "Target Y position"
+        },
+        {
+          "name": "speed",
+          "type": "Real",
+          "description": "Movement speed"
+        }
+      ],
+      "category": "movement",
+      "deprecated": false,
+      "tags": [
+        "movement",
+        "direction"
+      ]
+    },
+    {
+      "name": "show_debug_message",
+      "signature": "show_debug_message(value)",
+      "returns": "N/A",
+      "description": "Writes a value to the debug console.",
+      "params": [
+        {
+          "name": "value",
+          "type": "Any",
+          "description": "Value to print"
+        }
+      ],
+      "category": "debug",
+      "deprecated": false,
+      "tags": [
+        "debug",
+        "logging"
+      ]
+    },
+    {
+      "name": "camera_create_view",
+      "signature": "camera_create_view(view_x, view_y, view_w, view_h, angle, target, hborder, vborder, hspeed, vspeed)",
+      "returns": "Id.Camera",
+      "description": "Creates a camera configured as a view.",
+      "params": [
+        {
+          "name": "view_x",
+          "type": "Real",
+          "description": "View X position"
+        },
+        {
+          "name": "view_y",
+          "type": "Real",
+          "description": "View Y position"
+        },
+        {
+          "name": "view_w",
+          "type": "Real",
+          "description": "View width"
+        },
+        {
+          "name": "view_h",
+          "type": "Real",
+          "description": "View height"
+        },
+        {
+          "name": "angle",
+          "type": "Real",
+          "description": "View angle"
+        },
+        {
+          "name": "target",
+          "type": "Asset.GMObject|Id.Instance|noone",
+          "description": "Follow target"
+        },
+        {
+          "name": "hborder",
+          "type": "Real",
+          "description": "Horizontal border"
+        },
+        {
+          "name": "vborder",
+          "type": "Real",
+          "description": "Vertical border"
+        },
+        {
+          "name": "hspeed",
+          "type": "Real",
+          "description": "Horizontal follow speed"
+        },
+        {
+          "name": "vspeed",
+          "type": "Real",
+          "description": "Vertical follow speed"
+        }
+      ],
+      "category": "camera",
+      "deprecated": false,
+      "tags": [
+        "camera",
+        "view",
+        "create"
+      ]
+    },
+    {
+      "name": "view_set_camera",
+      "signature": "view_set_camera(view_index, camera_id)",
+      "returns": "N/A",
+      "description": "Assigns a camera to a view slot.",
+      "params": [
+        {
+          "name": "view_index",
+          "type": "Real",
+          "description": "View slot index"
+        },
+        {
+          "name": "camera_id",
+          "type": "Id.Camera",
+          "description": "Camera id to assign"
+        }
+      ],
+      "category": "camera",
+      "deprecated": false,
+      "tags": [
+        "camera",
+        "view",
+        "assign"
+      ]
+    },
+    {
+      "name": "camera_get_view_width",
+      "signature": "camera_get_view_width(camera_id)",
+      "returns": "Real",
+      "description": "Returns the view width of a camera.",
+      "params": [
+        {
+          "name": "camera_id",
+          "type": "Id.Camera",
+          "description": "Camera id"
+        }
+      ],
+      "category": "camera",
+      "deprecated": false,
+      "tags": [
+        "camera",
+        "view",
+        "size"
+      ]
+    },
+    {
+      "name": "camera_get_view_height",
+      "signature": "camera_get_view_height(camera_id)",
+      "returns": "Real",
+      "description": "Returns the view height of a camera.",
+      "params": [
+        {
+          "name": "camera_id",
+          "type": "Id.Camera",
+          "description": "Camera id"
+        }
+      ],
+      "category": "camera",
+      "deprecated": false,
+      "tags": [
+        "camera",
+        "view",
+        "size"
+      ]
+    },
+    {
+      "name": "camera_set_view_pos",
+      "signature": "camera_set_view_pos(camera_id, x, y)",
+      "returns": "N/A",
+      "description": "Sets the top-left position of a camera view.",
+      "params": [
+        {
+          "name": "camera_id",
+          "type": "Id.Camera",
+          "description": "Camera id"
+        },
+        {
+          "name": "x",
+          "type": "Real",
+          "description": "View X position"
+        },
+        {
+          "name": "y",
+          "type": "Real",
+          "description": "View Y position"
+        }
+      ],
+      "category": "camera",
+      "deprecated": false,
+      "tags": [
+        "camera",
+        "view",
+        "position"
+      ]
+    },
+    {
+      "name": "shader_set",
+      "signature": "shader_set(shader)",
+      "returns": "N/A",
+      "description": "Activates a shader for future draw calls.",
+      "params": [
+        {
+          "name": "shader",
+          "type": "Asset.Shader",
+          "description": "Shader asset to activate"
+        }
+      ],
+      "category": "shaders",
+      "deprecated": false,
+      "tags": [
+        "shader",
+        "activate"
+      ]
+    },
+    {
+      "name": "shader_reset",
+      "signature": "shader_reset()",
+      "returns": "N/A",
+      "description": "Resets rendering back to the default shader.",
+      "params": [],
+      "category": "shaders",
+      "deprecated": false,
+      "tags": [
+        "shader",
+        "reset"
+      ]
+    },
+    {
+      "name": "shader_get_uniform",
+      "signature": "shader_get_uniform(shader, constant)",
+      "returns": "Real",
+      "description": "Gets a uniform handle from a shader.",
+      "params": [
+        {
+          "name": "shader",
+          "type": "Asset.Shader",
+          "description": "Shader asset"
+        },
+        {
+          "name": "constant",
+          "type": "String",
+          "description": "Uniform name"
+        }
+      ],
+      "category": "shaders",
+      "deprecated": false,
+      "tags": [
+        "shader",
+        "uniform",
+        "query"
+      ]
+    },
+    {
+      "name": "shader_set_uniform_f",
+      "signature": "shader_set_uniform_f(handle, val, [val2], [val3], [val4])",
+      "returns": "N/A",
+      "description": "Writes float uniform values to a shader.",
+      "params": [
+        {
+          "name": "handle",
+          "type": "Real",
+          "description": "Uniform handle"
+        },
+        {
+          "name": "val",
+          "type": "Real",
+          "description": "First float value"
+        },
+        {
+          "name": "val2",
+          "type": "Real",
+          "optional": true,
+          "description": "Second float value"
+        },
+        {
+          "name": "val3",
+          "type": "Real",
+          "optional": true,
+          "description": "Third float value"
+        },
+        {
+          "name": "val4",
+          "type": "Real",
+          "optional": true,
+          "description": "Fourth float value"
+        }
+      ],
+      "category": "shaders",
+      "deprecated": false,
+      "tags": [
+        "shader",
+        "uniform",
+        "write"
+      ]
+    }
+  ],
+  "variables": [
+    {
+      "name": "x",
+      "type": "Real",
+      "scope": "instance",
+      "readonly": false,
+      "description": "The instance X position in the room."
+    },
+    {
+      "name": "y",
+      "type": "Real",
+      "scope": "instance",
+      "readonly": false,
+      "description": "The instance Y position in the room."
+    },
+    {
+      "name": "id",
+      "type": "Id.Instance",
+      "scope": "instance",
+      "readonly": true,
+      "description": "The unique id of the current instance."
+    },
+    {
+      "name": "object_index",
+      "type": "Asset.GMObject",
+      "scope": "instance",
+      "readonly": true,
+      "description": "The object asset index of the current instance."
+    },
+    {
+      "name": "self",
+      "type": "Id.Instance",
+      "scope": "instance",
+      "readonly": true,
+      "description": "Reference to the current instance in scope."
+    },
+    {
+      "name": "other",
+      "type": "Id.Instance",
+      "scope": "event",
+      "readonly": true,
+      "description": "Reference to the paired instance for certain event scopes."
+    },
+    {
+      "name": "global",
+      "type": "Namespace",
+      "scope": "global",
+      "readonly": false,
+      "description": "Namespace used to access global variables."
+    },
+    {
+      "name": "image_index",
+      "type": "Real",
+      "scope": "instance",
+      "readonly": false,
+      "description": "Current subimage index for the assigned sprite."
+    },
+    {
+      "name": "image_speed",
+      "type": "Real",
+      "scope": "instance",
+      "readonly": false,
+      "description": "Speed at which the sprite animation advances."
+    },
+    {
+      "name": "sprite_index",
+      "type": "Asset.Sprite",
+      "scope": "instance",
+      "readonly": false,
+      "description": "The sprite currently assigned to the instance."
+    },
+    {
+      "name": "depth",
+      "type": "Real",
+      "scope": "instance",
+      "readonly": false,
+      "description": "The draw depth of the instance."
+    },
+    {
+      "name": "alarm",
+      "type": "Array<Real>",
+      "scope": "instance",
+      "readonly": false,
+      "description": "Array of alarm countdown slots for the instance."
+    },
+    {
+      "name": "persistent",
+      "type": "Bool",
+      "scope": "instance",
+      "readonly": false,
+      "description": "Whether the instance survives room changes."
+    },
+    {
+      "name": "room",
+      "type": "Asset.Room",
+      "scope": "global",
+      "readonly": true,
+      "description": "The current room asset index."
+    },
+    {
+      "name": "room_speed",
+      "type": "Real",
+      "scope": "global",
+      "readonly": false,
+      "description": "The current game step rate."
+    },
+    {
+      "name": "mouse_x",
+      "type": "Real",
+      "scope": "global",
+      "readonly": true,
+      "description": "Mouse X position in room coordinates."
+    },
+    {
+      "name": "mouse_y",
+      "type": "Real",
+      "scope": "global",
+      "readonly": true,
+      "description": "Mouse Y position in room coordinates."
+    },
+    {
+      "name": "view_enabled",
+      "type": "Bool",
+      "scope": "global",
+      "readonly": false,
+      "description": "Whether the legacy view system is enabled."
+    },
+    {
+      "name": "view_visible",
+      "type": "Array<Bool>",
+      "scope": "global",
+      "readonly": false,
+      "description": "Visibility flags for view slots."
+    },
+    {
+      "name": "current_time",
+      "type": "Real",
+      "scope": "global",
+      "readonly": true,
+      "description": "Current elapsed time in milliseconds."
+    },
+    {
+      "name": "application_surface",
+      "type": "Id.Surface",
+      "scope": "global",
+      "readonly": true,
+      "description": "Default application surface id."
+    },
+    {
+      "name": "async_load",
+      "type": "Id.DSMap",
+      "scope": "event",
+      "readonly": true,
+      "description": "DS map payload supplied to async events."
+    },
+    {
+      "name": "event_type",
+      "type": "EventType",
+      "scope": "event",
+      "readonly": true,
+      "description": "The type of the event currently running."
+    },
+    {
+      "name": "event_number",
+      "type": "Real",
+      "scope": "event",
+      "readonly": true,
+      "description": "The sub-event number currently running."
+    },
+    {
+      "name": "working_directory",
+      "type": "String",
+      "scope": "global",
+      "readonly": true,
+      "description": "The runtime working directory path."
+    },
+    {
+      "name": "game_save_id",
+      "type": "String",
+      "scope": "global",
+      "readonly": true,
+      "description": "Per-game writable save location root."
+    }
+  ],
+  "constants": [
+    {
+      "name": "noone",
+      "value": -4,
+      "type": "Id.Instance",
+      "description": "Represents the absence of an instance."
+    },
+    {
+      "name": "undefined",
+      "value": null,
+      "type": "Undefined",
+      "description": "Represents an undefined value."
+    },
+    {
+      "name": "true",
+      "value": 1,
+      "type": "Bool",
+      "description": "Boolean true value."
+    },
+    {
+      "name": "false",
+      "value": 0,
+      "type": "Bool",
+      "description": "Boolean false value."
+    },
+    {
+      "name": "c_white",
+      "value": 16777215,
+      "type": "Color",
+      "description": "Packed color constant for white."
+    },
+    {
+      "name": "c_red",
+      "value": 255,
+      "type": "Color",
+      "description": "Packed color constant for red."
+    },
+    {
+      "name": "bm_normal",
+      "value": null,
+      "type": "BlendMode",
+      "description": "Standard alpha blend mode."
+    },
+    {
+      "name": "bm_add",
+      "value": null,
+      "type": "BlendMode",
+      "description": "Additive blend mode."
+    },
+    {
+      "name": "fa_left",
+      "value": null,
+      "type": "TextAlign.Horizontal",
+      "description": "Left text alignment constant."
+    },
+    {
+      "name": "fa_top",
+      "value": null,
+      "type": "TextAlign.Vertical",
+      "description": "Top text alignment constant."
+    },
+    {
+      "name": "vk_left",
+      "value": null,
+      "type": "KeyCode",
+      "description": "Virtual-key constant for Left Arrow."
+    },
+    {
+      "name": "vk_right",
+      "value": null,
+      "type": "KeyCode",
+      "description": "Virtual-key constant for Right Arrow."
+    },
+    {
+      "name": "vk_up",
+      "value": null,
+      "type": "KeyCode",
+      "description": "Virtual-key constant for Up Arrow."
+    },
+    {
+      "name": "vk_down",
+      "value": null,
+      "type": "KeyCode",
+      "description": "Virtual-key constant for Down Arrow."
+    },
+    {
+      "name": "vk_space",
+      "value": null,
+      "type": "KeyCode",
+      "description": "Virtual-key constant for Space."
+    },
+    {
+      "name": "mb_left",
+      "value": null,
+      "type": "MouseButton",
+      "description": "Mouse button constant for left click."
+    },
+    {
+      "name": "gp_axislh",
+      "value": null,
+      "type": "GamepadAxis",
+      "description": "Gamepad constant for left horizontal axis."
+    },
+    {
+      "name": "gp_axislv",
+      "value": null,
+      "type": "GamepadAxis",
+      "description": "Gamepad constant for left vertical axis."
+    },
+    {
+      "name": "network_socket_tcp",
+      "value": null,
+      "type": "NetworkSocketType",
+      "description": "Socket type constant for TCP."
+    },
+    {
+      "name": "network_type_connect",
+      "value": null,
+      "type": "NetworkEventType",
+      "description": "Async networking constant for connection success."
+    },
+    {
+      "name": "network_type_disconnect",
+      "value": null,
+      "type": "NetworkEventType",
+      "description": "Async networking constant for disconnect."
+    },
+    {
+      "name": "network_type_data",
+      "value": null,
+      "type": "NetworkEventType",
+      "description": "Async networking constant for incoming data."
+    },
+    {
+      "name": "buffer_grow",
+      "value": null,
+      "type": "BufferType",
+      "description": "Buffer type that grows when needed."
+    },
+    {
+      "name": "buffer_u8",
+      "value": null,
+      "type": "BufferValueType",
+      "description": "Unsigned 8-bit buffer value type."
+    },
+    {
+      "name": "buffer_u16",
+      "value": null,
+      "type": "BufferValueType",
+      "description": "Unsigned 16-bit buffer value type."
+    },
+    {
+      "name": "buffer_string",
+      "value": null,
+      "type": "BufferValueType",
+      "description": "Buffer value type for strings."
+    },
+    {
+      "name": "ev_create",
+      "value": null,
+      "type": "EventType",
+      "description": "Event constant for Create."
+    },
+    {
+      "name": "ev_destroy",
+      "value": null,
+      "type": "EventType",
+      "description": "Event constant for Destroy."
+    },
+    {
+      "name": "ev_cleanup",
+      "value": null,
+      "type": "EventType",
+      "description": "Event constant for Cleanup."
+    },
+    {
+      "name": "ev_alarm",
+      "value": null,
+      "type": "EventType",
+      "description": "Event constant for Alarm."
+    },
+    {
+      "name": "ev_step",
+      "value": null,
+      "type": "EventType",
+      "description": "Event constant for Step events."
+    },
+    {
+      "name": "ev_step_begin",
+      "value": null,
+      "type": "EventNumber",
+      "description": "Sub-event constant for Begin Step."
+    },
+    {
+      "name": "ev_step_normal",
+      "value": null,
+      "type": "EventNumber",
+      "description": "Sub-event constant for Step."
+    },
+    {
+      "name": "ev_step_end",
+      "value": null,
+      "type": "EventNumber",
+      "description": "Sub-event constant for End Step."
+    },
+    {
+      "name": "ev_collision",
+      "value": null,
+      "type": "EventType",
+      "description": "Event constant for Collision."
+    },
+    {
+      "name": "ev_draw",
+      "value": null,
+      "type": "EventType",
+      "description": "Event constant for Draw events."
+    },
+    {
+      "name": "ev_async",
+      "value": null,
+      "type": "EventType",
+      "description": "Event constant for Async events."
+    }
+  ]
+}
