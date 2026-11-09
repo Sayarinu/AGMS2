@@ -1,9 +1,14 @@
 import { randomUUID } from "node:crypto";
+import { rename } from "node:fs/promises";
 import path from "node:path";
 import fg from "fast-glob";
 import { execa } from "execa";
+import { assetDirectory, assetResourceRef, escapeRegExp, inferAssetType, normalizeAssetType, readResourceName } from "./assets.js";
+import { COLLISION_EVENT, eventFileName, eventLabel, legacyEventFileName } from "./events.js";
 import { ensureDir, exists, readText, removePath, writeFileAtomic } from "./fs.js";
 import { parseGmsJson, stringifyGmsJson } from "./json.js";
+import { formatMacro, parseMacros, type MacroDefinition } from "./macros.js";
+import { eventYy, objectYy, roomInstanceYy, roomYy, scriptYy, spriteYy } from "./templates.js";
 import type {
   AssetRecord,
   AssetType,
@@ -16,11 +21,21 @@ import type {
   SearchMatch
 } from "./types.js";
 
+type YyDocument = Record<string, unknown>;
+type KnownAssetType = Exclude<AssetType, "unknown">;
+
+interface EventInput {
+  eventType: number;
+  eventNum: number;
+  code?: string | undefined;
+  collisionObject?: string | null | undefined;
+}
+
 interface CreateObjectInput {
   name: string;
   sprite?: string | null | undefined;
   parent?: string | null | undefined;
-  events?: Array<{ eventType: number; eventNum: number; code?: string | undefined; collisionObject?: string | null | undefined }> | undefined;
+  events?: EventInput[] | undefined;
 }
 
 interface CreateRoomInput {
@@ -30,6 +45,9 @@ interface CreateRoomInput {
   persistent?: boolean | undefined;
 }
 
+/** Script that `setMacro` adds new macros to when the macro is not defined anywhere yet. */
+const MACRO_SCRIPT = "scr_macros";
+
 export class Gms2ProjectService {
   readonly rootPath: string;
   readonly projectPath: string;
@@ -38,7 +56,7 @@ export class Gms2ProjectService {
   private projectFile: GmsProjectFile | null = null;
   private assetsByKey = new Map<string, AssetRecord>();
   private assetsByType = new Map<AssetType, AssetRecord[]>();
-  private buildLogPath: string;
+  private readonly buildLogPath: string;
 
   constructor(projectPath: string, config: Gms2ServerConfig) {
     this.projectPath = projectPath;
@@ -54,7 +72,7 @@ export class Gms2ProjectService {
   async reload(): Promise<void> {
     const projectFile = parseGmsJson<GmsProjectFile>(await readText(this.projectPath));
     this.projectFile = projectFile;
-    this.rebuildIndex(projectFile);
+    await this.rebuildIndex(projectFile);
   }
 
   async invalidateForPath(changedPath: string): Promise<void> {
@@ -66,11 +84,10 @@ export class Gms2ProjectService {
 
   getProjectMetadata(): Record<string, unknown> {
     const project = this.requireProject();
-    const rooms = this.getRoomOrder();
     return {
       name: project.name,
       ideVersion: project.MetaData?.IDEVersion ?? null,
-      roomOrder: rooms,
+      roomOrder: this.getRoomOrder(),
       includedFiles: project.IncludedFiles ?? [],
       resourceCount: this.assetsByKey.size
     };
@@ -98,55 +115,42 @@ export class Gms2ProjectService {
   }
 
   async getAssetIndex(): Promise<Record<string, unknown>> {
+    const sorted = Array.from(this.assetsByKey.values()).sort(
+      (left, right) => left.type.localeCompare(right.type) || left.name.localeCompare(right.name)
+    );
     const assets = await Promise.all(
-      Array.from(this.assetsByKey.values())
-        .sort((left, right) => {
-          if (left.type === right.type) {
-            return left.name.localeCompare(right.name);
-          }
-          return left.type.localeCompare(right.type);
-        })
-        .map(async asset => {
-          if (asset.type === "object") {
-            const objectYy = parseGmsJson<Record<string, unknown>>(await readText(asset.yyPath));
-            const events = await this.readObjectEvents(asset);
-            return {
-              type: asset.type,
-              name: asset.name,
-              relativePath: asset.relativePath,
-              yyPath: asset.yyPath,
-              primaryPath: asset.yyPath,
-              spriteName: readResourceName(objectYy.spriteId),
-              parentName: readResourceName(objectYy.parentObjectId),
-              events: events.map(event => ({
-                eventType: event.eventType,
-                eventNum: event.eventNum,
-                collisionObject: event.collisionObject?.name ?? null,
-                gmlPath: event.gmlPath
-              }))
-            };
-          }
+      sorted.map(async asset => {
+        const base = {
+          type: asset.type,
+          name: asset.name,
+          relativePath: asset.relativePath,
+          yyPath: asset.yyPath,
+          primaryPath: asset.yyPath
+        };
 
-          if (asset.type === "script") {
-            const gmlPath = path.join(asset.directoryPath, `${asset.name}.gml`);
-            return {
-              type: asset.type,
-              name: asset.name,
-              relativePath: asset.relativePath,
-              yyPath: asset.yyPath,
-              primaryPath: gmlPath,
-              gmlPath
-            };
-          }
-
+        if (asset.type === "object") {
+          const objectDoc = await readYy(asset.yyPath);
+          const events = await this.readObjectEvents(asset, objectDoc);
           return {
-            type: asset.type,
-            name: asset.name,
-            relativePath: asset.relativePath,
-            yyPath: asset.yyPath,
-            primaryPath: asset.yyPath
+            ...base,
+            spriteName: readResourceName(objectDoc.spriteId),
+            parentName: readResourceName(objectDoc.parentObjectId),
+            events: events.map(event => ({
+              eventType: event.eventType,
+              eventNum: event.eventNum,
+              collisionObject: event.collisionObject?.name ?? null,
+              gmlPath: event.gmlPath
+            }))
           };
-        })
+        }
+
+        if (asset.type === "script") {
+          const gmlPath = scriptGmlPath(asset);
+          return { ...base, primaryPath: gmlPath, gmlPath };
+        }
+
+        return base;
+      })
     );
 
     return {
@@ -159,47 +163,43 @@ export class Gms2ProjectService {
 
   async getAssetWithContent(type: string, name: string): Promise<Record<string, unknown>> {
     const asset = this.getAssetRecord(type, name);
-    const yy = parseGmsJson<Record<string, unknown>>(await readText(asset.yyPath));
     return {
       name: asset.name,
       type: asset.type,
       path: asset.relativePath,
-      yy
+      yy: await readYy(asset.yyPath)
     };
   }
 
   async getObjectEvents(name: string): Promise<Record<string, unknown>> {
     const asset = this.getAssetRecord("object", name);
-    const objectYy = parseGmsJson<Record<string, unknown>>(await readText(asset.yyPath));
-    const events = await this.readObjectEvents(asset);
+    const objectDoc = await readYy(asset.yyPath);
     return {
       object: name,
-      spriteId: objectYy.spriteId ?? null,
-      parentObjectId: objectYy.parentObjectId ?? null,
-      events
+      spriteId: objectDoc.spriteId ?? null,
+      parentObjectId: objectDoc.parentObjectId ?? null,
+      events: await this.readObjectEvents(asset, objectDoc)
     };
   }
 
-  async readEvent(objectName: string, eventType: number, eventNum: number): Promise<ObjectEventRecord> {
+  async readEvent(objectName: string, eventType: number, eventNum: number, collisionObject: string | null = null): Promise<ObjectEventRecord> {
     const asset = this.getAssetRecord("object", objectName);
-    const events = await this.readObjectEvents(asset);
-    const event = events.find(entry => entry.eventType === eventType && entry.eventNum === eventNum);
+    const events = await this.readObjectEvents(asset, await readYy(asset.yyPath));
+    const event = events.find(entry => matchesEvent(entry, eventType, eventNum, collisionObject));
     if (!event) {
-      throw new Error(`Object ${objectName} does not contain event ${eventType}_${eventNum}.`);
+      throw new Error(`Object ${objectName} does not contain event ${eventLabel(eventType, eventNum, collisionObject)}.`);
     }
     return event;
   }
 
-  async writeEvent(objectName: string, eventType: number, eventNum: number, code: string): Promise<ObjectEventRecord> {
-    const event = await this.readEvent(objectName, eventType, eventNum);
+  async writeEvent(objectName: string, eventType: number, eventNum: number, code: string, collisionObject: string | null = null): Promise<ObjectEventRecord> {
+    const event = await this.readEvent(objectName, eventType, eventNum, collisionObject);
     await writeFileAtomic(event.gmlPath, code);
-    await this.reload();
-    return await this.readEvent(objectName, eventType, eventNum);
+    return await this.readEvent(objectName, eventType, eventNum, collisionObject);
   }
 
   async readScript(name: string): Promise<Record<string, unknown>> {
-    const asset = this.getAssetRecord("script", name);
-    const scriptPath = path.join(path.dirname(asset.yyPath), `${name}.gml`);
+    const scriptPath = scriptGmlPath(this.getAssetRecord("script", name));
     return {
       name,
       path: path.relative(this.rootPath, scriptPath),
@@ -208,16 +208,12 @@ export class Gms2ProjectService {
   }
 
   async writeScript(name: string, code: string): Promise<Record<string, unknown>> {
-    const asset = this.getAssetRecord("script", name);
-    const scriptPath = path.join(path.dirname(asset.yyPath), `${name}.gml`);
-    await writeFileAtomic(scriptPath, code);
+    await writeFileAtomic(scriptGmlPath(this.getAssetRecord("script", name)), code);
     return await this.readScript(name);
   }
 
   async getRoom(name: string): Promise<Record<string, unknown>> {
-    const asset = this.getAssetRecord("room", name);
-    const room = parseGmsJson<Record<string, unknown>>(await readText(asset.yyPath));
-    return room;
+    return await readYy(this.getAssetRecord("room", name).yyPath);
   }
 
   getConfigResource(): Record<string, unknown> {
@@ -229,12 +225,10 @@ export class Gms2ProjectService {
     };
   }
 
-  async getMacros(): Promise<Record<string, unknown>> {
-    const candidates = await fg(["options/**/*.yy"], { cwd: this.rootPath, absolute: true });
-    const macros: Array<Record<string, unknown>> = [];
-    for (const candidate of candidates) {
-      const parsed = parseGmsJson<Record<string, unknown>>(await readText(candidate));
-      collectMacros(parsed, macros);
+  async getMacros(): Promise<{ macros: MacroDefinition[] }> {
+    const macros: MacroDefinition[] = [];
+    for (const file of await this.gmlFiles()) {
+      macros.push(...parseMacros(await readText(file), path.relative(this.rootPath, file)));
     }
     return { macros };
   }
@@ -245,15 +239,14 @@ export class Gms2ProjectService {
       assets.map(async asset => ({
         name: asset.name,
         path: asset.relativePath,
-        yy: parseGmsJson<Record<string, unknown>>(await readText(asset.yyPath))
+        yy: await readYy(asset.yyPath)
       }))
     );
     return { extensions };
   }
 
   getRoomOrder(): string[] {
-    const project = this.requireProject();
-    return (project.RoomOrderNodes ?? [])
+    return (this.requireProject().RoomOrderNodes ?? [])
       .map(node => node.roomId?.name)
       .filter((name): name is string => Boolean(name));
   }
@@ -270,31 +263,31 @@ export class Gms2ProjectService {
 
   async createObject(input: CreateObjectInput): Promise<Record<string, unknown>> {
     this.ensureAssetMissing("object", input.name);
-    const objectDir = path.join(this.rootPath, "objects", input.name);
-    await ensureDir(objectDir);
+    const objectDir = path.join(this.rootPath, assetDirectory("object"), input.name);
+    const events = (input.events ?? []).map(event => {
+      const collisionObject = event.collisionObject ?? null;
+      return {
+        yy: eventYy(event.eventType, event.eventNum, this.collisionRef(event.eventType, collisionObject)),
+        file: eventFileName(event.eventType, event.eventNum, collisionObject),
+        code: event.code ?? ""
+      };
+    });
 
-    const eventList = (input.events ?? []).map(event => this.makeEventYy(input.name, event.eventType, event.eventNum, event.collisionObject ?? null));
-    const objectYy = {
-      resourceType: "GMObject",
-      resourceVersion: "1.0",
+    const document = objectYy({
       name: input.name,
-      spriteId: input.sprite ? this.resourceRefFor("sprite", input.sprite) : null,
-      solid: false,
-      visible: true,
-      managed: true,
-      parentObjectId: input.parent ? this.resourceRefFor("object", input.parent) : null,
-      persistent: false,
-      physicsObject: false,
-      eventList
-    };
+      parentFolder: this.rootFolderRef(),
+      sprite: input.sprite ? this.resourceRefFor("sprite", input.sprite) : null,
+      parent: input.parent ? this.resourceRefFor("object", input.parent) : null,
+      events: events.map(event => event.yy)
+    });
 
-    await writeFileAtomic(path.join(objectDir, `${input.name}.yy`), stringifyGmsJson(objectYy));
-    for (const event of input.events ?? []) {
-      const gmlPath = path.join(objectDir, `${event.eventType}_${event.eventNum}.gml`);
-      await writeFileAtomic(gmlPath, event.code ?? "");
+    await ensureDir(objectDir);
+    await writeYy(path.join(objectDir, `${input.name}.yy`), document);
+    for (const event of events) {
+      await writeFileAtomic(path.join(objectDir, event.file), event.code);
     }
 
-    await this.addResource("objects", input.name);
+    await this.addResource("object", input.name);
     await this.reload();
     return await this.getAssetWithContent("object", input.name);
   }
@@ -317,300 +310,225 @@ export class Gms2ProjectService {
     this.ensureAssetMissing(asset.type, toName);
 
     const newDir = path.join(path.dirname(asset.directoryPath), toName);
-    await import("node:fs/promises").then(fs => fs.rename(asset.directoryPath, newDir));
+    await rename(asset.directoryPath, newDir);
 
     const oldYyPath = path.join(newDir, `${fromName}.yy`);
-    const newYyPath = path.join(newDir, `${toName}.yy`);
-    const yy = parseGmsJson<Record<string, unknown>>(await readText(oldYyPath));
-    yy.name = toName;
+    const document = await readYy(oldYyPath);
+    document.name = toName;
     await removePath(oldYyPath);
-    await writeFileAtomic(newYyPath, stringifyGmsJson(yy));
+    await writeYy(path.join(newDir, `${toName}.yy`), document);
 
     if (asset.type === "script") {
       const oldScriptPath = path.join(newDir, `${fromName}.gml`);
-      const newScriptPath = path.join(newDir, `${toName}.gml`);
       if (await exists(oldScriptPath)) {
-        await import("node:fs/promises").then(fs => fs.rename(oldScriptPath, newScriptPath));
+        await rename(oldScriptPath, path.join(newDir, `${toName}.gml`));
       }
     }
 
+    const newPath = path.posix.join(path.posix.dirname(path.posix.dirname(asset.relativePath)), toName, `${toName}.yy`);
     const project = this.requireProject();
-    for (const entry of project.resources ?? []) {
-      if (entry.id?.path === asset.relativePath && entry.id) {
-        entry.id.name = toName;
-        entry.id.path = path.posix.join(path.posix.dirname(path.posix.dirname(asset.relativePath)), toName, `${toName}.yy`);
-      }
-    }
-    for (const room of project.RoomOrderNodes ?? []) {
-      if (room.roomId?.path === asset.relativePath && room.roomId) {
-        room.roomId.name = toName;
-        room.roomId.path = path.posix.join(path.posix.dirname(path.posix.dirname(asset.relativePath)), toName, `${toName}.yy`);
+    const refs = [
+      ...(project.resources ?? []).map(entry => entry.id),
+      ...(project.RoomOrderNodes ?? []).map(entry => entry.roomId)
+    ];
+    for (const ref of refs) {
+      if (ref?.path === asset.relativePath) {
+        ref.name = toName;
+        ref.path = newPath;
       }
     }
     await this.saveProject(project);
 
-    const replacementRegex = new RegExp(`\\b${escapeRegExp(fromName)}\\b`, "g");
-    await this.replaceInGmlInternal(replacementRegex, toName);
+    await this.replaceInGmlFiles(new RegExp(`\\b${escapeRegExp(fromName)}\\b`, "g"), toName);
 
     await this.reload();
     return await this.getAssetWithContent(asset.type, toName);
   }
 
   async setObjectSprite(objectName: string, spriteName: string | null): Promise<Record<string, unknown>> {
-    const asset = this.getAssetRecord("object", objectName);
-    const objectYy = parseGmsJson<Record<string, unknown>>(await readText(asset.yyPath));
-    objectYy.spriteId = spriteName ? this.resourceRefFor("sprite", spriteName) : null;
-    await writeFileAtomic(asset.yyPath, stringifyGmsJson(objectYy));
-    await this.reload();
-    return await this.getAssetWithContent("object", objectName);
+    return await this.updateObject(objectName, document => {
+      document.spriteId = spriteName ? this.resourceRefFor("sprite", spriteName) : null;
+    });
   }
 
   async setObjectParent(objectName: string, parentName: string | null): Promise<Record<string, unknown>> {
-    const asset = this.getAssetRecord("object", objectName);
-    const objectYy = parseGmsJson<Record<string, unknown>>(await readText(asset.yyPath));
-    objectYy.parentObjectId = parentName ? this.resourceRefFor("object", parentName) : null;
-    await writeFileAtomic(asset.yyPath, stringifyGmsJson(objectYy));
-    await this.reload();
-    return await this.getAssetWithContent("object", objectName);
+    if (parentName === objectName) {
+      throw new Error(`Object ${objectName} cannot be its own parent.`);
+    }
+    return await this.updateObject(objectName, document => {
+      document.parentObjectId = parentName ? this.resourceRefFor("object", parentName) : null;
+    });
   }
 
   async addEvent(objectName: string, eventType: number, eventNum: number, code = "", collisionObject: string | null = null): Promise<ObjectEventRecord> {
     const asset = this.getAssetRecord("object", objectName);
-    const objectYy = parseGmsJson<Record<string, unknown>>(await readText(asset.yyPath));
-    const eventList = Array.isArray(objectYy.eventList) ? objectYy.eventList as Array<Record<string, unknown>> : [];
-    const existing = eventList.find(event => event.eventType === eventType && event.eventNum === eventNum);
-    if (existing) {
-      throw new Error(`Object ${objectName} already contains event ${eventType}_${eventNum}.`);
+    const document = await readYy(asset.yyPath);
+    const events = recordArray(document.eventList);
+    if (events.some(event => matchesEventYy(event, eventType, eventNum, collisionObject))) {
+      throw new Error(`Object ${objectName} already contains event ${eventLabel(eventType, eventNum, collisionObject)}.`);
     }
-    eventList.push(this.makeEventYy(objectName, eventType, eventNum, collisionObject));
-    objectYy.eventList = eventList;
-    await writeFileAtomic(asset.yyPath, stringifyGmsJson(objectYy));
-    await writeFileAtomic(path.join(asset.directoryPath, `${eventType}_${eventNum}.gml`), code);
+    const file = eventFileName(eventType, eventNum, collisionObject);
+    events.push(eventYy(eventType, eventNum, this.collisionRef(eventType, collisionObject)));
+    document.eventList = events;
+    await writeYy(asset.yyPath, document);
+    await writeFileAtomic(path.join(asset.directoryPath, file), code);
     await this.reload();
-    return await this.readEvent(objectName, eventType, eventNum);
+    return await this.readEvent(objectName, eventType, eventNum, collisionObject);
   }
 
-  async removeEvent(objectName: string, eventType: number, eventNum: number): Promise<Record<string, unknown>> {
+  async removeEvent(objectName: string, eventType: number, eventNum: number, collisionObject: string | null = null): Promise<Record<string, unknown>> {
+    const event = await this.readEvent(objectName, eventType, eventNum, collisionObject);
     const asset = this.getAssetRecord("object", objectName);
-    const objectYy = parseGmsJson<Record<string, unknown>>(await readText(asset.yyPath));
-    const eventList = Array.isArray(objectYy.eventList) ? objectYy.eventList as Array<Record<string, unknown>> : [];
-    objectYy.eventList = eventList.filter(event => !(event.eventType === eventType && event.eventNum === eventNum));
-    await writeFileAtomic(asset.yyPath, stringifyGmsJson(objectYy));
-    await removePath(path.join(asset.directoryPath, `${eventType}_${eventNum}.gml`));
+    const document = await readYy(asset.yyPath);
+    document.eventList = recordArray(document.eventList).filter(entry => !matchesEventYy(entry, eventType, eventNum, collisionObject));
+    await writeYy(asset.yyPath, document);
+    await removePath(event.gmlPath);
     await this.reload();
-    return { removed: true, objectName, eventType, eventNum };
+    return { removed: true, objectName, eventType, eventNum, collisionObject };
   }
 
   async createScript(name: string, code: string): Promise<Record<string, unknown>> {
     this.ensureAssetMissing("script", name);
-    const scriptDir = path.join(this.rootPath, "scripts", name);
+    const scriptDir = path.join(this.rootPath, assetDirectory("script"), name);
     await ensureDir(scriptDir);
-    const yy = {
-      resourceType: "GMScript",
-      resourceVersion: "1.0",
-      name
-    };
-    await writeFileAtomic(path.join(scriptDir, `${name}.yy`), stringifyGmsJson(yy));
+    await writeYy(path.join(scriptDir, `${name}.yy`), scriptYy(name, this.rootFolderRef()));
     await writeFileAtomic(path.join(scriptDir, `${name}.gml`), code);
-    await this.addResource("scripts", name);
+    await this.addResource("script", name);
     await this.reload();
     return await this.readScript(name);
   }
 
   async createRoom(input: CreateRoomInput): Promise<Record<string, unknown>> {
     this.ensureAssetMissing("room", input.name);
-    const roomDir = path.join(this.rootPath, "rooms", input.name);
+    const roomDir = path.join(this.rootPath, assetDirectory("room"), input.name);
     await ensureDir(roomDir);
-    const room = {
-      resourceType: "GMRoom",
-      resourceVersion: "1.0",
+    const document = roomYy({
       name: input.name,
-      creationCodeFile: "",
-      inheritCode: false,
-      inheritCreationOrder: false,
-      inheritLayers: false,
-      instanceCreationOrder: [],
-      isDnd: false,
-      layers: [
-        {
-          resourceType: "GMRInstanceLayer",
-          resourceVersion: "1.0",
-          name: "Instances",
-          depth: 0,
-          effectEnabled: true,
-          effectType: null,
-          gridX: 32,
-          gridY: 32,
-          hierarchyFrozen: false,
-          inheritLayerDepth: false,
-          inheritLayerSettings: false,
-          inheritSubLayers: true,
-          inheritVisibility: true,
-          instances: [],
-          layers: [],
-          properties: [],
-          userdefinedDepth: false,
-          visible: true
-        }
-      ],
-      parent: {
-        name: "Rooms",
-        path: "folders/Rooms.yy"
-      },
-      parentRoom: null,
-      physicsSettings: {
-        inheritPhysicsSettings: false,
-        PhysicsWorld: false,
-        PhysicsWorldGravityX: 0,
-        PhysicsWorldGravityY: 10,
-        PhysicsWorldPixToMetres: 0.1
-      },
-      roomSettings: {
-        Width: input.width,
-        Height: input.height,
-        inheritRoomSettings: false,
-        persistent: input.persistent ?? false
-      },
-      sequenceId: null,
-      views: [],
-      viewSettings: {
-        clearDisplayBuffer: true,
-        clearViewBackground: false,
-        enableViews: false,
-        inheritViewSettings: false
-      },
-      volume: 1
-    };
-    await writeFileAtomic(path.join(roomDir, `${input.name}.yy`), stringifyGmsJson(room));
-    await this.addResource("rooms", input.name);
+      parentFolder: this.rootFolderRef(),
+      width: input.width,
+      height: input.height,
+      persistent: input.persistent ?? false
+    });
+    await writeYy(path.join(roomDir, `${input.name}.yy`), document);
 
     const project = this.requireProject();
-    project.RoomOrderNodes = [...(project.RoomOrderNodes ?? []), { roomId: this.makeResourceRef("rooms", input.name) }];
-    await this.saveProject(project);
+    project.RoomOrderNodes = [...(project.RoomOrderNodes ?? []), { roomId: assetResourceRef("room", input.name) }];
+    await this.addResource("room", input.name);
     await this.reload();
     return await this.getRoom(input.name);
   }
 
   async createSprite(name: string): Promise<Record<string, unknown>> {
     this.ensureAssetMissing("sprite", name);
-    const spriteDir = path.join(this.rootPath, "sprites", name);
+    const spriteDir = path.join(this.rootPath, assetDirectory("sprite"), name);
     await ensureDir(spriteDir);
-    const yy = {
-      resourceType: "GMSprite",
-      resourceVersion: "1.0",
-      name,
-      width: 0,
-      height: 0,
-      bboxMode: 0,
-      collisionKind: 1,
-      frames: []
-    };
-    await writeFileAtomic(path.join(spriteDir, `${name}.yy`), stringifyGmsJson(yy));
-    await this.addResource("sprites", name);
+    await writeYy(path.join(spriteDir, `${name}.yy`), spriteYy(name, this.rootFolderRef()));
+    await this.addResource("sprite", name);
     await this.reload();
     return await this.getAssetWithContent("sprite", name);
   }
 
   async searchGml(query: string, useRegex = false, caseSensitive = false): Promise<SearchMatch[]> {
-    const pattern = useRegex ? new RegExp(query, caseSensitive ? "g" : "gi") : new RegExp(escapeRegExp(query), caseSensitive ? "g" : "gi");
-    const files = await fg(["**/*.gml"], { cwd: this.rootPath, absolute: true });
+    const pattern = buildPattern(query, useRegex, caseSensitive);
     const matches: SearchMatch[] = [];
-    for (const file of files) {
-      const source = await readText(file);
-      const lines = source.split(/\r?\n/);
-      for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
-        const line = lines[lineIndex] ?? "";
-        for (const result of line.matchAll(new RegExp(pattern.source, pattern.flags))) {
+    for (const file of await this.gmlFiles()) {
+      const lines = (await readText(file)).split(/\r?\n/);
+      lines.forEach((line, lineIndex) => {
+        for (const result of line.matchAll(pattern)) {
           matches.push({
             file: path.relative(this.rootPath, file),
             line: lineIndex + 1,
-            column: (result.index ?? 0) + 1,
+            column: result.index + 1,
             lineText: line,
             match: result[0]
           });
         }
-      }
+      });
     }
     return matches;
   }
 
   async replaceInGml(find: string, replace: string, useRegex = false, caseSensitive = false): Promise<ReplaceSummary[]> {
-    const pattern = useRegex ? new RegExp(find, caseSensitive ? "g" : "gi") : new RegExp(escapeRegExp(find), caseSensitive ? "g" : "gi");
-    const result = await this.replaceInGmlInternal(pattern, replace);
+    const result = await this.replaceInGmlFiles(buildPattern(find, useRegex, caseSensitive), replace);
     await this.reload();
     return result;
   }
 
   async addToRoom(roomName: string, objectName: string, x: number, y: number, layerName?: string): Promise<Record<string, unknown>> {
     const roomAsset = this.getAssetRecord("room", roomName);
-    this.getAssetRecord("object", objectName);
-    const room = parseGmsJson<Record<string, unknown>>(await readText(roomAsset.yyPath));
-    const layers = Array.isArray(room.layers) ? room.layers as Array<Record<string, unknown>> : [];
-    const layer =
-      layers.find(entry => entry.name === layerName) ??
-      layers.find(entry => entry.resourceType === "GMRInstanceLayer");
-    if (!layer) {
-      throw new Error(`Room ${roomName} does not have an instance layer to place ${objectName}.`);
+    const objectRef = this.resourceRefFor("object", objectName);
+    const room = await readYy(roomAsset.yyPath);
+    const layers = recordArray(room.layers);
+    const layer = layerName
+      ? layers.find(entry => entry.name === layerName)
+      : layers.find(entry => entry.resourceType === "GMRInstanceLayer");
+    if (!layer || layer.resourceType !== "GMRInstanceLayer") {
+      throw new Error(
+        layerName
+          ? `Room ${roomName} does not have an instance layer named ${layerName}.`
+          : `Room ${roomName} does not have an instance layer to place ${objectName}.`
+      );
     }
-    const instances = Array.isArray(layer.instances) ? layer.instances as Array<Record<string, unknown>> : [];
-    const instanceId = randomUUID();
-    const instance = {
-      resourceType: "GMRInstance",
-      resourceVersion: "1.0",
-      name: `inst_${instanceId.slice(0, 8)}`,
-      objectId: this.resourceRefFor("object", objectName),
-      x,
-      y,
-      rotation: 0,
-      scaleX: 1,
-      scaleY: 1,
-      colour: 4294967295,
-      hasCreationCode: false,
-      instanceId
-    };
-    instances.push(instance);
-    layer.instances = instances;
-    await writeFileAtomic(roomAsset.yyPath, stringifyGmsJson(room));
+
+    const instanceName = `inst_${randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase()}`;
+    layer.instances = [...recordArray(layer.instances), roomInstanceYy(instanceName, objectRef, x, y)];
+    room.instanceCreationOrder = [...recordArray(room.instanceCreationOrder), { name: instanceName, path: roomAsset.relativePath }];
+    await writeYy(roomAsset.yyPath, room);
     await this.reload();
-    return { roomName, instanceId, objectName, x, y };
+    return { roomName, instanceId: instanceName, objectName, x, y, layer: layer.name ?? null };
   }
 
   async removeFromRoom(roomName: string, instanceId: string): Promise<Record<string, unknown>> {
     const roomAsset = this.getAssetRecord("room", roomName);
-    const room = parseGmsJson<Record<string, unknown>>(await readText(roomAsset.yyPath));
-    const layers = Array.isArray(room.layers) ? room.layers as Array<Record<string, unknown>> : [];
-    for (const layer of layers) {
-      if (!Array.isArray(layer.instances)) {
+    const room = await readYy(roomAsset.yyPath);
+    const isTarget = (instance: YyDocument) => instance.name === instanceId || instance.instanceId === instanceId;
+
+    for (const layer of recordArray(room.layers)) {
+      const instances = recordArray(layer.instances);
+      const removed = instances.find(isTarget);
+      if (!removed) {
         continue;
       }
-      const instances = layer.instances as Array<Record<string, unknown>>;
-      const next = instances.filter(instance => instance.instanceId !== instanceId && instance.name !== instanceId);
-      if (next.length !== instances.length) {
-        layer.instances = next;
-        await writeFileAtomic(roomAsset.yyPath, stringifyGmsJson(room));
-        await this.reload();
-        return { removed: true, roomName, instanceId };
-      }
+      layer.instances = instances.filter(instance => instance !== removed);
+      room.instanceCreationOrder = recordArray(room.instanceCreationOrder).filter(entry => entry.name !== removed.name);
+      await writeYy(roomAsset.yyPath, room);
+      await this.reload();
+      return { removed: true, roomName, instanceId };
     }
     throw new Error(`Room ${roomName} does not contain instance ${instanceId}.`);
   }
 
+  /**
+   * Updates an existing `#macro NAME value` line, or adds the macro to the `scr_macros`
+   * script (creating it if needed) when the macro is not defined yet.
+   */
   async setMacro(name: string, value: string): Promise<Record<string, unknown>> {
-    const optionsPath = path.join(this.rootPath, "options", "main", "options_main.yy");
-    const options = (await exists(optionsPath))
-      ? parseGmsJson<Record<string, unknown>>(await readText(optionsPath))
-      : { resourceType: "GMMainOptions", resourceVersion: "1.0", name: "Main", macros: [] };
-    const macros = Array.isArray(options.macros) ? options.macros as Array<Record<string, unknown>> : [];
-    const existing = macros.find(entry => entry.name === name);
-    if (existing) {
-      existing.value = value;
-    } else {
-      macros.push({ name, value });
+    if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)) {
+      throw new Error(`Invalid macro name "${name}".`);
     }
-    options.macros = macros;
-    await writeFileAtomic(optionsPath, stringifyGmsJson(options));
-    await this.reload();
-    return { name, value };
+    if (/[\r\n]/.test(value)) {
+      throw new Error("Macro values must fit on one line.");
+    }
+
+    const existing = (await this.getMacros()).macros.find(macro => macro.name === name && macro.config === null);
+    if (existing) {
+      const filePath = path.join(this.rootPath, existing.file);
+      const lines = (await readText(filePath)).split("\n");
+      const original = lines[existing.line - 1] ?? "";
+      const indent = /^\s*/.exec(original)?.[0] ?? "";
+      lines[existing.line - 1] = `${indent}${formatMacro(name, value)}${original.endsWith("\r") ? "\r" : ""}`;
+      await writeFileAtomic(filePath, lines.join("\n"));
+      return { name, value, file: existing.file };
+    }
+
+    const line = `${formatMacro(name, value)}\n`;
+    if (this.assetsByKey.has(`script:${MACRO_SCRIPT}`)) {
+      const current = String((await this.readScript(MACRO_SCRIPT)).source);
+      await this.writeScript(MACRO_SCRIPT, `${current}${current === "" || current.endsWith("\n") ? "" : "\n"}${line}`);
+    } else {
+      await this.createScript(MACRO_SCRIPT, line);
+    }
+    return { name, value, file: path.relative(this.rootPath, scriptGmlPath(this.getAssetRecord("script", MACRO_SCRIPT))) };
   }
 
   async getBuildLog(): Promise<Record<string, unknown>> {
@@ -627,38 +545,33 @@ export class Gms2ProjectService {
     }
 
     const binaryPath = this.config.gmsBinaryPath;
-    const command = [
-      binaryPath,
-      `--${mode}`,
-      this.projectPath
-    ];
-    const result = await execa(binaryPath, command.slice(1), {
+    const args = [`--${mode}`, this.projectPath];
+    const result = await execa(binaryPath, args, {
       cwd: this.rootPath,
       reject: false
     });
-    const highlightedErrors = result.stderr
-      .split(/\r?\n/)
-      .filter(line => /error/i.test(line));
+    if (result.exitCode === undefined) {
+      throw new Error(`Could not run ${binaryPath}: ${result.shortMessage}`);
+    }
+
     await writeFileAtomic(this.buildLogPath, `${result.stdout}\n${result.stderr}`.trim());
     return {
-      command,
-      exitCode: result.exitCode ?? 0,
+      command: [binaryPath, ...args],
+      exitCode: result.exitCode,
       stdout: result.stdout,
       stderr: result.stderr,
-      highlightedErrors
+      highlightedErrors: result.stderr.split(/\r?\n/).filter(line => /error/i.test(line))
     };
   }
 
-  private rebuildIndex(projectFile: GmsProjectFile): void {
-    this.assetsByKey.clear();
-    this.assetsByType.clear();
+  private async rebuildIndex(projectFile: GmsProjectFile): Promise<void> {
     const resourceMap = new Map<string, GmsResourceRef>();
     for (const resource of projectFile.resources ?? []) {
       if (resource.id?.path && resource.id.name) {
         resourceMap.set(resource.id.path, resource.id);
       }
     }
-    const discoveredPaths = fg.sync(["{objects,scripts,rooms,sprites,extensions}/**/*.yy"], { cwd: this.rootPath });
+    const discoveredPaths = await fg(["{objects,scripts,rooms,sprites,extensions}/*/*.yy"], { cwd: this.rootPath });
     for (const discoveredPath of discoveredPaths) {
       if (!resourceMap.has(discoveredPath)) {
         resourceMap.set(discoveredPath, {
@@ -667,24 +580,20 @@ export class Gms2ProjectService {
         });
       }
     }
-    const resources = Array.from(resourceMap.values()).map(resource => ({ id: resource }));
-    for (const resource of resources) {
-      if (!resource.id?.path || !resource.id.name) {
-        continue;
-      }
-      const yyPath = path.join(this.rootPath, resource.id.path);
-      const assetType = inferAssetType(resource.id.path);
+
+    this.assetsByKey.clear();
+    this.assetsByType.clear();
+    for (const resource of resourceMap.values()) {
+      const yyPath = path.join(this.rootPath, resource.path);
+      const assetType = inferAssetType(resource.path);
       const record: AssetRecord = {
-        id: `${assetType}:${resource.id.name}`,
+        id: `${assetType}:${resource.name}`,
         type: assetType,
-        name: resource.id.name,
+        name: resource.name,
         yyPath,
-        relativePath: resource.id.path,
+        relativePath: resource.path,
         directoryPath: path.dirname(yyPath),
-        resource: {
-          name: resource.id.name,
-          path: resource.id.path
-        }
+        resource: { name: resource.name, path: resource.path }
       };
       this.assetsByKey.set(record.id, record);
       const bucket = this.assetsByType.get(record.type) ?? [];
@@ -710,6 +619,9 @@ export class Gms2ProjectService {
   }
 
   private ensureAssetMissing(type: AssetType, name: string): void {
+    if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)) {
+      throw new Error(`Invalid asset name "${name}". Use letters, digits and underscores, not starting with a digit.`);
+    }
     if (this.assetsByKey.has(`${type}:${name}`)) {
       throw new Error(`Asset already exists: ${type}/${name}`);
     }
@@ -719,19 +631,37 @@ export class Gms2ProjectService {
     return this.getAssetRecord(type, name).resource;
   }
 
-  private async readObjectEvents(asset: AssetRecord): Promise<ObjectEventRecord[]> {
-    const objectYy = parseGmsJson<Record<string, unknown>>(await readText(asset.yyPath));
-    const eventList = Array.isArray(objectYy.eventList) ? objectYy.eventList as Array<Record<string, unknown>> : [];
+  private collisionRef(eventType: number, collisionObject: string | null): GmsResourceRef | null {
+    return eventType === COLLISION_EVENT && collisionObject ? this.resourceRefFor("object", collisionObject) : null;
+  }
+
+  /** New assets go at the root of the asset browser, under the project itself. */
+  private rootFolderRef(): GmsResourceRef {
+    const project = this.requireProject();
+    return { name: project.name, path: path.basename(this.projectPath) };
+  }
+
+  private async updateObject(objectName: string, update: (document: YyDocument) => void): Promise<Record<string, unknown>> {
+    const asset = this.getAssetRecord("object", objectName);
+    const document = await readYy(asset.yyPath);
+    update(document);
+    await writeYy(asset.yyPath, document);
+    await this.reload();
+    return await this.getAssetWithContent("object", objectName);
+  }
+
+  private async readObjectEvents(asset: AssetRecord, objectDoc: YyDocument): Promise<ObjectEventRecord[]> {
     return await Promise.all(
-      eventList.map(async event => {
+      recordArray(objectDoc.eventList).map(async event => {
         const eventType = Number(event.eventType ?? 0);
         const eventNum = Number(event.eventNum ?? 0);
-        const gmlPath = path.join(asset.directoryPath, `${eventType}_${eventNum}.gml`);
+        const collisionObject = readResourceRef(event.collisionObjectId);
+        const gmlPath = await this.locateEventFile(asset, eventType, eventNum, collisionObject?.name ?? null);
         return {
-          id: String(event.id ?? `${asset.name}:${eventType}:${eventNum}`),
+          id: String(event.id ?? `${asset.name}:${eventType}:${eventNum}${collisionObject ? `:${collisionObject.name}` : ""}`),
           eventType,
           eventNum,
-          collisionObject: (event.collisionObjectId as GmsResourceRef | undefined) ?? null,
+          collisionObject,
           gmlPath,
           source: (await exists(gmlPath)) ? await readText(gmlPath) : "",
           raw: event
@@ -740,34 +670,23 @@ export class Gms2ProjectService {
     );
   }
 
-  private makeEventYy(_objectName: string, eventType: number, eventNum: number, collisionObject: string | null): Record<string, unknown> {
-    return {
-      resourceType: "GMEvent",
-      resourceVersion: "1.0",
-      isDnD: false,
-      eventType,
-      eventNum,
-      collisionObjectId: collisionObject ? this.resourceRefFor("object", collisionObject) : null,
-      id: randomUUID()
-    };
-  }
-
-  private async addResource(folderName: string, name: string): Promise<void> {
-    const project = this.requireProject();
-    project.resources = [
-      ...(project.resources ?? []),
-      {
-        id: this.makeResourceRef(folderName, name)
+  private async locateEventFile(asset: AssetRecord, eventType: number, eventNum: number, collisionObject: string | null): Promise<string> {
+    const legacyPath = path.join(asset.directoryPath, legacyEventFileName(eventType, eventNum));
+    try {
+      const canonicalPath = path.join(asset.directoryPath, eventFileName(eventType, eventNum, collisionObject));
+      if ((await exists(canonicalPath)) || !(await exists(legacyPath))) {
+        return canonicalPath;
       }
-    ];
-    await this.saveProject(project);
+    } catch {
+      // Unknown event types have no canonical file name; fall back to the legacy one.
+    }
+    return legacyPath;
   }
 
-  private makeResourceRef(folderName: string, name: string): GmsResourceRef {
-    return {
-      name,
-      path: `${folderName}/${name}/${name}.yy`
-    };
+  private async addResource(type: KnownAssetType, name: string): Promise<void> {
+    const project = this.requireProject();
+    project.resources = [...(project.resources ?? []), { id: assetResourceRef(type, name) }];
+    await this.saveProject(project);
   }
 
   private async saveProject(project: GmsProjectFile): Promise<void> {
@@ -775,102 +694,72 @@ export class Gms2ProjectService {
     this.projectFile = project;
   }
 
-  private async replaceInGmlInternal(pattern: RegExp, replace: string): Promise<ReplaceSummary[]> {
-    const files = await fg(["**/*.gml"], { cwd: this.rootPath, absolute: true });
+  private async gmlFiles(): Promise<string[]> {
+    return (await fg(["**/*.gml"], { cwd: this.rootPath, absolute: true, ignore: ["**/node_modules/**"] })).sort();
+  }
+
+  private async replaceInGmlFiles(pattern: RegExp, replace: string): Promise<ReplaceSummary[]> {
     const summaries: ReplaceSummary[] = [];
-    for (const file of files) {
+    for (const file of await this.gmlFiles()) {
       const source = await readText(file);
-      const matches = Array.from(source.matchAll(new RegExp(pattern.source, pattern.flags)));
-      if (matches.length === 0) {
+      const replacements = Array.from(source.matchAll(pattern)).length;
+      if (replacements === 0) {
         continue;
       }
-      const next = source.replace(pattern, replace);
-      await writeFileAtomic(file, next);
-      summaries.push({
-        file: path.relative(this.rootPath, file),
-        replacements: matches.length
-      });
+      await writeFileAtomic(file, source.replace(pattern, replace));
+      summaries.push({ file: path.relative(this.rootPath, file), replacements });
     }
     return summaries;
   }
 }
 
-function inferAssetType(relativePath: string): AssetType {
-  const [segment] = relativePath.split("/");
-  switch (segment) {
-    case "sprites":
-      return "sprite";
-    case "objects":
-      return "object";
-    case "rooms":
-      return "room";
-    case "scripts":
-      return "script";
-    case "fonts":
-      return "font";
-    case "sounds":
-      return "sound";
-    case "tilesets":
-      return "tileset";
-    case "sequences":
-      return "sequence";
-    case "shaders":
-      return "shader";
-    case "timelines":
-      return "timeline";
-    case "paths":
-      return "path";
-    case "notes":
-      return "note";
-    case "extensions":
-      return "extension";
-    case "animcurves":
-      return "animationCurve";
-    case "particles":
-      return "particleSystem";
-    default:
-      return "unknown";
+async function readYy(filePath: string): Promise<YyDocument> {
+  return parseGmsJson<YyDocument>(await readText(filePath));
+}
+
+async function writeYy(filePath: string, document: YyDocument): Promise<void> {
+  await writeFileAtomic(filePath, stringifyGmsJson(document));
+}
+
+function recordArray(value: unknown): YyDocument[] {
+  return Array.isArray(value) ? value.filter((entry): entry is YyDocument => Boolean(entry) && typeof entry === "object") : [];
+}
+
+function readResourceRef(value: unknown): GmsResourceRef | null {
+  const name = readResourceName(value);
+  const refPath = (value as { path?: unknown } | null)?.path;
+  return name !== null && typeof refPath === "string" ? { name, path: refPath } : null;
+}
+
+function scriptGmlPath(asset: AssetRecord): string {
+  return path.join(asset.directoryPath, `${asset.name}.gml`);
+}
+
+function buildPattern(query: string, useRegex: boolean, caseSensitive: boolean): RegExp {
+  const source = useRegex ? query : escapeRegExp(query);
+  try {
+    return new RegExp(source, caseSensitive ? "g" : "gi");
+  } catch (error) {
+    throw new Error(`Invalid regular expression: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
-function normalizeAssetType(type: string): AssetType {
-  const normalized = type.replace(/s$/, "");
-  if (normalized === "animationcurve") {
-    return "animationCurve";
+function matchesEvent(event: ObjectEventRecord, eventType: number, eventNum: number, collisionObject: string | null): boolean {
+  if (event.eventType !== eventType) {
+    return false;
   }
-  return normalized as AssetType;
+  if (eventType === COLLISION_EVENT && collisionObject) {
+    return event.collisionObject?.name === collisionObject;
+  }
+  return event.eventNum === eventNum;
 }
 
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function collectMacros(input: unknown, macros: Array<Record<string, unknown>>): void {
-  if (Array.isArray(input)) {
-    for (const value of input) {
-      collectMacros(value, macros);
-    }
-    return;
+function matchesEventYy(event: YyDocument, eventType: number, eventNum: number, collisionObject: string | null): boolean {
+  if (Number(event.eventType) !== eventType) {
+    return false;
   }
-  if (!input || typeof input !== "object") {
-    return;
+  if (eventType === COLLISION_EVENT) {
+    return readResourceName(event.collisionObjectId) === collisionObject;
   }
-
-  const record = input as Record<string, unknown>;
-  if (typeof record.name === "string" && Object.hasOwn(record, "value")) {
-    macros.push({ name: record.name, value: record.value });
-  }
-
-  for (const value of Object.values(record)) {
-    collectMacros(value, macros);
-  }
-}
-
-function readResourceName(value: unknown): string | null {
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-
-  const maybeName = (value as { name?: unknown }).name;
-  return typeof maybeName === "string" ? maybeName : null;
+  return Number(event.eventNum) === eventNum;
 }

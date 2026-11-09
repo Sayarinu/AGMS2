@@ -1,6 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { errorResult, successResult } from "../mcp-utils.js";
+import { runTool } from "../mcp-utils.js";
 import type { Gms2ProjectService } from "../project/service.js";
 
 export function registerCodeTools(server: McpServer, project: Gms2ProjectService): void {
@@ -13,11 +13,12 @@ export function registerCodeTools(server: McpServer, project: Gms2ProjectService
         objectName: z.string(),
         eventType: z.number().int(),
         eventNum: z.number().int(),
-        code: z.string()
+        code: z.string(),
+        collisionObject: z.string().nullable().optional().describe("Other object, for collision events (eventType 4)")
       }
     },
-    async ({ objectName, eventType, eventNum, code }) =>
-      await wrapTool(async () => await project.writeEvent(objectName, eventType, eventNum, code))
+    async ({ objectName, eventType, eventNum, code, collisionObject }) =>
+      await runTool(async () => await project.writeEvent(objectName, eventType, eventNum, code, collisionObject ?? null))
   );
 
   server.registerTool(
@@ -30,7 +31,7 @@ export function registerCodeTools(server: McpServer, project: Gms2ProjectService
         code: z.string()
       }
     },
-    async ({ name, code }) => await wrapTool(async () => await project.writeScript(name, code))
+    async ({ name, code }) => await runTool(async () => await project.writeScript(name, code))
   );
 
   server.registerTool(
@@ -41,10 +42,12 @@ export function registerCodeTools(server: McpServer, project: Gms2ProjectService
       inputSchema: {
         objectName: z.string(),
         eventType: z.number().int(),
-        eventNum: z.number().int()
+        eventNum: z.number().int(),
+        collisionObject: z.string().nullable().optional().describe("Other object, for collision events (eventType 4)")
       }
     },
-    async ({ objectName, eventType, eventNum }) => await wrapTool(async () => await project.readEvent(objectName, eventType, eventNum))
+    async ({ objectName, eventType, eventNum, collisionObject }) =>
+      await runTool(async () => await project.readEvent(objectName, eventType, eventNum, collisionObject ?? null))
   );
 
   server.registerTool(
@@ -56,7 +59,7 @@ export function registerCodeTools(server: McpServer, project: Gms2ProjectService
         name: z.string()
       }
     },
-    async ({ name }) => await wrapTool(async () => await project.readScript(name))
+    async ({ name }) => await runTool(async () => await project.readScript(name))
   );
 
   server.registerTool(
@@ -71,7 +74,7 @@ export function registerCodeTools(server: McpServer, project: Gms2ProjectService
       }
     },
     async ({ query, useRegex, caseSensitive }) =>
-      await wrapTool(async () => ({ matches: await project.searchGml(query, useRegex, caseSensitive) }))
+      await runTool(async () => ({ matches: await project.searchGml(query, useRegex, caseSensitive) }))
   );
 
   server.registerTool(
@@ -87,14 +90,6 @@ export function registerCodeTools(server: McpServer, project: Gms2ProjectService
       }
     },
     async ({ find, replace, useRegex, caseSensitive }) =>
-      await wrapTool(async () => ({ files: await project.replaceInGml(find, replace, useRegex, caseSensitive) }))
+      await runTool(async () => ({ files: await project.replaceInGml(find, replace, useRegex, caseSensitive) }))
   );
-}
-
-async function wrapTool(action: () => Promise<Record<string, unknown>>) {
-  try {
-    return successResult(await action());
-  } catch (error) {
-    return errorResult(error);
-  }
 }

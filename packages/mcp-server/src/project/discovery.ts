@@ -1,4 +1,4 @@
-import { access } from "node:fs/promises";
+import { access, readdir } from "node:fs/promises";
 import path from "node:path";
 
 export interface CliOptions {
@@ -20,34 +20,43 @@ export function parseCliArgs(argv: string[]): CliOptions {
     } else if (arg === "--sse") {
       options.sse = true;
     } else if (arg === "--port") {
-      const value = argv[index + 1];
-      if (value) {
-        options.port = Number(value);
+      const port = Number(argv[index + 1]);
+      if (!Number.isInteger(port) || port <= 0 || port > 65535) {
+        throw new Error(`--port expects a port number, got ${String(argv[index + 1])}.`);
       }
+      options.port = port;
       index += 1;
     }
   }
   return options;
 }
 
+/**
+ * Resolves the `.yyp` to open from `--project`, then `GMS2_PROJECT_PATH`, then the working
+ * directory and its parents. `--project` and `GMS2_PROJECT_PATH` may name a `.yyp` file or the
+ * folder that contains one.
+ */
 export async function discoverProjectPath(explicitProject: string | undefined, cwd: string): Promise<string> {
-  const candidates = [explicitProject, process.env.GMS2_PROJECT_PATH].filter((value): value is string => Boolean(value));
-  for (const candidate of candidates) {
-    const resolved = path.resolve(cwd, candidate);
+  const configured = explicitProject || process.env.GMS2_PROJECT_PATH;
+  if (configured) {
+    const resolved = path.resolve(cwd, configured);
     if (resolved.endsWith(".yyp")) {
-      await assertReadable(resolved);
+      await access(resolved);
       return resolved;
     }
+    const projectFile = await findProjectFile(resolved);
+    if (!projectFile) {
+      throw new Error(`No .yyp project file found in ${resolved}.`);
+    }
+    return projectFile;
   }
 
   let current = cwd;
   while (true) {
-    const entries = await import("node:fs/promises").then(async fs => await fs.readdir(current));
-    const projectFile = entries.find(entry => entry.endsWith(".yyp"));
+    const projectFile = await findProjectFile(current);
     if (projectFile) {
-      return path.join(current, projectFile);
+      return projectFile;
     }
-
     const parent = path.dirname(current);
     if (parent === current) {
       break;
@@ -58,6 +67,7 @@ export async function discoverProjectPath(explicitProject: string | undefined, c
   throw new Error("Unable to locate a .yyp project file via --project, GMS2_PROJECT_PATH, or cwd discovery.");
 }
 
-async function assertReadable(filePath: string): Promise<void> {
-  await access(filePath);
+async function findProjectFile(directory: string): Promise<string | undefined> {
+  const projectFile = (await readdir(directory)).sort().find(entry => entry.endsWith(".yyp"));
+  return projectFile ? path.join(directory, projectFile) : undefined;
 }

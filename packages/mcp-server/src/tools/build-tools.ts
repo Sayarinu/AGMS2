@@ -1,5 +1,5 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { errorResult, successResult } from "../mcp-utils.js";
+import { runTool } from "../mcp-utils.js";
 import type { Gms2ProjectService } from "../project/service.js";
 
 export function registerBuildTools(server: McpServer, project: Gms2ProjectService): void {
@@ -9,7 +9,7 @@ export function registerBuildTools(server: McpServer, project: Gms2ProjectServic
       title: "Build Project",
       description: "Run a GMS2 CLI build"
     },
-    async () => await wrapTool(async () => await project.runBuildCommand("build"))
+    async () => await runTool(async () => await project.runBuildCommand("build"))
   );
 
   server.registerTool(
@@ -18,7 +18,7 @@ export function registerBuildTools(server: McpServer, project: Gms2ProjectServic
       title: "Run Project",
       description: "Launch a test run via the GMS2 CLI"
     },
-    async () => await wrapTool(async () => await project.runBuildCommand("run"))
+    async () => await runTool(async () => await project.runBuildCommand("run"))
   );
 
   server.registerTool(
@@ -27,14 +27,6 @@ export function registerBuildTools(server: McpServer, project: Gms2ProjectServic
       title: "Clean Project",
       description: "Clean project build output"
     },
-    async () => await wrapTool(async () => await project.runBuildCommand("clean"))
+    async () => await runTool(async () => await project.runBuildCommand("clean"))
   );
-}
-
-async function wrapTool(action: () => Promise<Record<string, unknown>>) {
-  try {
-    return successResult(await action());
-  } catch (error) {
-    return errorResult(error);
-  }
 }

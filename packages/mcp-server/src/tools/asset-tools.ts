@@ -1,6 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { errorResult, successResult } from "../mcp-utils.js";
+import { runTool } from "../mcp-utils.js";
 import type { Gms2ProjectService } from "../project/service.js";
 
 export function registerAssetTools(server: McpServer, project: Gms2ProjectService): void {
@@ -25,7 +25,7 @@ export function registerAssetTools(server: McpServer, project: Gms2ProjectServic
           .optional()
       }
     },
-    async input => await wrapTool(async () => await project.createObject(input))
+    async input => await runTool(async () => await project.createObject(input))
   );
 
   server.registerTool(
@@ -39,7 +39,7 @@ export function registerAssetTools(server: McpServer, project: Gms2ProjectServic
         confirm: z.literal(true)
       }
     },
-    async ({ type, name }) => await wrapTool(async () => await project.deleteAsset(type, name))
+    async ({ type, name }) => await runTool(async () => await project.deleteAsset(type, name))
   );
 
   server.registerTool(
@@ -53,7 +53,7 @@ export function registerAssetTools(server: McpServer, project: Gms2ProjectServic
         toName: z.string()
       }
     },
-    async ({ type, fromName, toName }) => await wrapTool(async () => await project.renameAsset(type, fromName, toName))
+    async ({ type, fromName, toName }) => await runTool(async () => await project.renameAsset(type, fromName, toName))
   );
 
   server.registerTool(
@@ -66,7 +66,7 @@ export function registerAssetTools(server: McpServer, project: Gms2ProjectServic
         spriteName: z.string().nullable()
       }
     },
-    async ({ objectName, spriteName }) => await wrapTool(async () => await project.setObjectSprite(objectName, spriteName))
+    async ({ objectName, spriteName }) => await runTool(async () => await project.setObjectSprite(objectName, spriteName))
   );
 
   server.registerTool(
@@ -79,14 +79,15 @@ export function registerAssetTools(server: McpServer, project: Gms2ProjectServic
         parentName: z.string().nullable()
       }
     },
-    async ({ objectName, parentName }) => await wrapTool(async () => await project.setObjectParent(objectName, parentName))
+    async ({ objectName, parentName }) => await runTool(async () => await project.setObjectParent(objectName, parentName))
   );
 
   server.registerTool(
     "add_event",
     {
       title: "Add Event",
-      description: "Add an event to an object",
+      description:
+        "Add an event to an object. eventType follows GameMaker: 0 Create, 1 Destroy, 2 Alarm, 3 Step, 4 Collision, 5 Keyboard, 6 Mouse, 7 Other (user events are 7 with eventNum 10-25), 8 Draw, 9 Key Press, 10 Key Release, 12 Clean Up",
       inputSchema: {
         objectName: z.string(),
         eventType: z.number().int(),
@@ -96,7 +97,7 @@ export function registerAssetTools(server: McpServer, project: Gms2ProjectServic
       }
     },
     async ({ objectName, eventType, eventNum, code, collisionObject }) =>
-      await wrapTool(async () => await project.addEvent(objectName, eventType, eventNum, code, collisionObject ?? null))
+      await runTool(async () => await project.addEvent(objectName, eventType, eventNum, code, collisionObject ?? null))
   );
 
   server.registerTool(
@@ -107,10 +108,12 @@ export function registerAssetTools(server: McpServer, project: Gms2ProjectServic
       inputSchema: {
         objectName: z.string(),
         eventType: z.number().int(),
-        eventNum: z.number().int()
+        eventNum: z.number().int(),
+        collisionObject: z.string().nullable().optional()
       }
     },
-    async ({ objectName, eventType, eventNum }) => await wrapTool(async () => await project.removeEvent(objectName, eventType, eventNum))
+    async ({ objectName, eventType, eventNum, collisionObject }) =>
+      await runTool(async () => await project.removeEvent(objectName, eventType, eventNum, collisionObject ?? null))
   );
 
   server.registerTool(
@@ -123,7 +126,7 @@ export function registerAssetTools(server: McpServer, project: Gms2ProjectServic
         code: z.string()
       }
     },
-    async ({ name, code }) => await wrapTool(async () => await project.createScript(name, code))
+    async ({ name, code }) => await runTool(async () => await project.createScript(name, code))
   );
 
   server.registerTool(
@@ -138,7 +141,7 @@ export function registerAssetTools(server: McpServer, project: Gms2ProjectServic
         persistent: z.boolean().optional()
       }
     },
-    async input => await wrapTool(async () => await project.createRoom(input))
+    async input => await runTool(async () => await project.createRoom(input))
   );
 
   server.registerTool(
@@ -150,14 +153,6 @@ export function registerAssetTools(server: McpServer, project: Gms2ProjectServic
         name: z.string()
       }
     },
-    async ({ name }) => await wrapTool(async () => await project.createSprite(name))
+    async ({ name }) => await runTool(async () => await project.createSprite(name))
   );
-}
-
-async function wrapTool(action: () => Promise<Record<string, unknown>>) {
-  try {
-    return successResult(await action());
-  } catch (error) {
-    return errorResult(error);
-  }
 }
