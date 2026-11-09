@@ -155,15 +155,16 @@ export class Gms2McpClient implements vscode.Disposable {
     }
 
     const result = await this.client.callTool({ name, arguments: args ?? {} }, CallToolResultSchema);
+    const text = firstTextContent(result.content);
     if (result.isError) {
-      const text = result.content.find(entry => entry.type === "text")?.text ?? `Tool failed: ${name}`;
-      throw new Error(text);
+      throw new Error(text ?? `Tool failed: ${name}`);
     }
     if (result.structuredContent) {
       return result.structuredContent as T;
     }
-
-    const text = result.content.find(entry => entry.type === "text")?.text ?? "{}";
+    if (text === undefined) {
+      throw new Error(`Tool ${name} returned no content.`);
+    }
     return JSON.parse(text) as T;
   }
 
@@ -219,4 +220,16 @@ export class Gms2McpClient implements vscode.Disposable {
       ].join(" ")
     );
   }
+}
+
+function firstTextContent(content: unknown): string | undefined {
+  if (!Array.isArray(content)) {
+    return undefined;
+  }
+  for (const entry of content) {
+    if (entry && typeof entry === "object" && entry.type === "text" && typeof entry.text === "string") {
+      return entry.text;
+    }
+  }
+  return undefined;
 }

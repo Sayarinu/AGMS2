@@ -1,7 +1,7 @@
 import path from "node:path";
 import * as vscode from "vscode";
 import { describeEvent } from "../language/eventCatalog.js";
-import type { AssetIndexEntry, ExplorerNode } from "../types.js";
+import type { AssetIndexEntry, AssetIndexPayload, ExplorerNode } from "../types.js";
 
 const folderOrder: AssetIndexEntry["type"][] = [
   "object",
@@ -41,12 +41,19 @@ const folderLabels = new Map<AssetIndexEntry["type"], string>([
   ["unknown", "Other"]
 ]);
 
+const assetContextValues = new Map<AssetIndexEntry["type"], string>([
+  ["object", "gms2Object"],
+  ["script", "gms2Script"],
+  ["room", "gms2Room"],
+  ["sprite", "gms2Sprite"]
+]);
+
 export class Gms2ExplorerProvider implements vscode.TreeDataProvider<ExplorerNode> {
   private readonly emitter = new vscode.EventEmitter<ExplorerNode | undefined>();
 
   readonly onDidChangeTreeData = this.emitter.event;
 
-  constructor(private readonly getAssets: () => { project?: string; assets: AssetIndexEntry[] }) {}
+  constructor(private readonly getAssetIndex: () => AssetIndexPayload | undefined) {}
 
   refresh(): void {
     this.emitter.fire(undefined);
@@ -55,9 +62,15 @@ export class Gms2ExplorerProvider implements vscode.TreeDataProvider<ExplorerNod
   getTreeItem(node: ExplorerNode): vscode.TreeItem {
     const item = new vscode.TreeItem(node.label, node.collapsibleState);
     item.contextValue = node.contextValue;
-    item.command = node.command;
-    item.resourceUri = node.resourceUri;
-    item.tooltip = node.tooltip;
+    if (node.command) {
+      item.command = node.command;
+    }
+    if (node.resourceUri) {
+      item.resourceUri = node.resourceUri;
+    }
+    if (node.tooltip) {
+      item.tooltip = node.tooltip;
+    }
 
     if (node.kind === "project") {
       item.iconPath = new vscode.ThemeIcon("package");
@@ -79,8 +92,8 @@ export class Gms2ExplorerProvider implements vscode.TreeDataProvider<ExplorerNod
   }
 
   async getChildren(node?: ExplorerNode): Promise<ExplorerNode[]> {
-    const state = this.getAssets();
-    if (!state.project) {
+    const state = this.getAssetIndex();
+    if (!state) {
       return [];
     }
 
@@ -114,27 +127,26 @@ export class Gms2ExplorerProvider implements vscode.TreeDataProvider<ExplorerNod
         .map(asset => this.assetNode(asset));
     }
 
-    if (node.kind === "asset" && node.asset?.type === "object") {
-      return (node.asset.events ?? [])
+    const objectAsset = node.kind === "asset" && node.asset?.type === "object" ? node.asset : undefined;
+    if (objectAsset) {
+      return (objectAsset.events ?? [])
         .slice()
         .sort((left, right) => left.eventType - right.eventType || left.eventNum - right.eventNum)
-        .map(event => ({
-          kind: "event",
-          label: describeEvent(event),
-          collapsibleState: vscode.TreeItemCollapsibleState.None,
-          asset: node.asset,
-          assetType: node.asset.type,
-          event,
-          contextValue: "gms2Event",
-          resourceUri: vscode.Uri.file(event.gmlPath),
-          command: {
-            command: "vscode.open",
-            title: "Open Event",
-            arguments: [vscode.Uri.file(event.gmlPath)]
-          },
-          tooltip: path.basename(event.gmlPath)
-        }))
-        .filter(Boolean);
+        .map((event): ExplorerNode => {
+          const uri = vscode.Uri.file(event.gmlPath);
+          return {
+            kind: "event",
+            label: describeEvent(event),
+            collapsibleState: vscode.TreeItemCollapsibleState.None,
+            asset: objectAsset,
+            assetType: objectAsset.type,
+            event,
+            contextValue: "gms2Event",
+            resourceUri: uri,
+            command: { command: "vscode.open", title: "Open Event", arguments: [uri] },
+            tooltip: path.basename(event.gmlPath)
+          };
+        });
     }
 
     return [];
@@ -142,7 +154,7 @@ export class Gms2ExplorerProvider implements vscode.TreeDataProvider<ExplorerNod
 
   private assetNode(asset: AssetIndexEntry): ExplorerNode {
     const opensPath = asset.type === "script" ? asset.gmlPath ?? asset.primaryPath : asset.primaryPath;
-    const resourceUri = opensPath ? vscode.Uri.file(opensPath) : undefined;
+    const resourceUri = vscode.Uri.file(opensPath);
 
     return {
       kind: "asset",
@@ -150,24 +162,9 @@ export class Gms2ExplorerProvider implements vscode.TreeDataProvider<ExplorerNod
       collapsibleState: asset.type === "object" ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None,
       assetType: asset.type,
       asset,
-      contextValue:
-        asset.type === "object"
-          ? "gms2Object"
-          : asset.type === "script"
-            ? "gms2Script"
-            : asset.type === "room"
-              ? "gms2Room"
-              : asset.type === "sprite"
-                ? "gms2Sprite"
-                : "gms2Asset",
+      contextValue: assetContextValues.get(asset.type) ?? "gms2Asset",
       resourceUri,
-      command: resourceUri
-        ? {
-            command: "vscode.open",
-            title: "Open Asset",
-            arguments: [resourceUri]
-          }
-        : undefined,
+      command: { command: "vscode.open", title: "Open Asset", arguments: [resourceUri] },
       tooltip: asset.type === "object"
         ? [asset.yyPath, asset.spriteName ? `Sprite: ${asset.spriteName}` : "", asset.parentName ? `Parent: ${asset.parentName}` : ""]
             .filter(Boolean)

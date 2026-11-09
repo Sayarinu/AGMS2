@@ -11,10 +11,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const configuration = vscode.workspace.getConfiguration("gms2");
   client = new Gms2McpClient(context.extensionUri, configuration);
 
-  const explorer = new Gms2ExplorerProvider(() => ({
-    project: client?.getAssetIndex()?.project,
-    assets: client?.getAssetIndex()?.assets ?? []
-  }));
+  const explorer = new Gms2ExplorerProvider(() => client?.getAssetIndex());
 
   const diagnostics = new GmlDiagnosticsController(client);
   const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);

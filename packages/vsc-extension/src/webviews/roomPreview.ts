@@ -7,11 +7,8 @@ export async function openRoomPreview(client: Gms2McpClient, room: AssetIndexEnt
     enableScripts: false
   });
 
-  const roomData = await client.callTool<Record<string, unknown>>("get_asset", { type: "room", name: room.name }).catch(async () => {
-    return await client.callTool<Record<string, unknown>>("read_resource", { uri: room.relativePath });
-  }).catch(() => ({}));
-
-  const yy = (roomData.yy ?? roomData) as Record<string, unknown>;
+  const roomData = await client.callTool<{ yy?: Record<string, unknown> }>("get_asset", { type: "room", name: room.name });
+  const yy = roomData.yy ?? {};
   const settings = (yy.roomSettings ?? {}) as Record<string, unknown>;
   const layers = Array.isArray(yy.layers) ? yy.layers as Array<Record<string, unknown>> : [];
   const instances = layers.flatMap(layer => Array.isArray(layer.instances) ? layer.instances as Array<Record<string, unknown>> : []);
