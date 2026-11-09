@@ -1,3 +1,4 @@
+import path from "node:path";
 import * as vscode from "vscode";
 import { eventCatalog } from "./language/eventCatalog.js";
 import { openObjectInspector } from "./webviews/objectInspector.js";
@@ -63,6 +64,10 @@ export function registerCommands(services: ExtensionServices): vscode.Disposable
       await openProject(uri, services);
     }),
     vscode.commands.registerCommand("gms2.reconnectServer", async () => {
+      if (!services.client.projectPath) {
+        void vscode.window.showInformationMessage("Open a GameMaker project first (GMS2: Open Project).");
+        return;
+      }
       await services.client.reconnect();
       await afterMutationRefresh(services);
     }),
@@ -126,12 +131,12 @@ export function registerCommands(services: ExtensionServices): vscode.Disposable
         { matchOnDescription: true, title: `Results for "${query}"` }
       );
 
-      if (!picked || !services.client.getAssetIndex()) {
+      const rootPath = services.client.getAssetIndex()?.rootPath;
+      if (!picked || !rootPath) {
         return;
       }
 
-      const rootPath = services.client.getAssetIndex()!.rootPath;
-      const uri = vscode.Uri.file(`${rootPath}/${picked.match.file}`);
+      const uri = vscode.Uri.file(path.join(rootPath, picked.match.file));
       const document = await vscode.workspace.openTextDocument(uri);
       const editor = await vscode.window.showTextDocument(document);
       const position = new vscode.Position(Math.max(0, picked.match.line - 1), Math.max(0, picked.match.column - 1));

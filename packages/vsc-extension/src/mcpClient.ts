@@ -52,14 +52,14 @@ export class Gms2McpClient implements vscode.Disposable {
     this.updateState("connecting");
 
     const serverEntry = await this.resolveServerEntry();
-    const repoRoot = path.dirname(serverEntry);
+
     const gmsBinaryPath = this.configuration.get<string>("gmsBinaryPath")?.trim();
     const buildTarget = this.configuration.get<string>("buildTarget")?.trim();
 
     this.transport = new StdioClientTransport({
       command: process.execPath,
       args: [serverEntry, "--project", projectPath],
-      cwd: repoRoot,
+      cwd: path.dirname(serverEntry),
       stderr: "pipe",
       env: {
         ...process.env,
@@ -97,8 +97,12 @@ export class Gms2McpClient implements vscode.Disposable {
                 this.output.appendLine(`Resource refresh failed: ${error.message}`);
                 return;
               }
-              await this.refreshAssetIndex();
-              this.assetsChanged.fire();
+              try {
+                await this.refreshAssetIndex();
+                this.assetsChanged.fire();
+              } catch (refreshError) {
+                this.output.appendLine(`Asset index refresh failed: ${refreshError instanceof Error ? refreshError.message : String(refreshError)}`);
+              }
             }
           }
         }
