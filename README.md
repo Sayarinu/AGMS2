@@ -1,244 +1,183 @@
+<div align="center">
+
+<img src="packages/vsc-extension/media/gamemaker-diamond.svg" alt="AGMS2" width="96" height="96">
+
 # AGMS2
 
-AGMS2 is a GameMaker Studio 2 tooling monorepo built around three pieces:
+**GameMaker projects in VS Code, Cursor and your AI agent.**
 
-- a local MCP server that can inspect and modify `.yyp`, `.yy`, and `.gml` files
-- a VS Code-compatible extension for editing a GMS2 project entirely from the editor
-- a GML builtins/skills data package used for documentation, prompts, and editor features
+Edit GML with completions, hover docs and diagnostics, browse and change your project's objects, scripts and rooms from the editor, and give agents the same access through a local MCP server.
 
-The goal is to make a GameMaker project feel like a first-class codebase inside modern editors such as VS Code, Cursor, and VSCodium.
+[![Latest release](https://img.shields.io/github/v/release/Sayarinu/AGMS2?label=release&sort=semver)](https://github.com/Sayarinu/AGMS2/releases/latest)
+[![CI](https://github.com/Sayarinu/AGMS2/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Sayarinu/AGMS2/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-## Packages
+[**Install**](#install) · [Features](#features) · [MCP server](#using-the-mcp-server-with-agents) · [How it works](#how-it-works) · [FAQ](#faq)
 
-- `packages/mcp-server`  
-  Local MCP server for GameMaker projects. It exposes project metadata, asset reads/writes, build/run commands, search, and room/object mutation tools.
+</div>
 
-- `packages/vsc-extension`  
-  VS Code/Cursor extension with a GMS2 explorer, GML language tooling, MCP lifecycle management, and read-only webviews.
+---
 
-- `packages/gml-skills`  
-  Prompt-ready GameMaker guidance plus built-in functions, variables, and constants used by the extension’s grammar, completion, hover, and signature help.
+## Features
 
-## Current Features
+### Writing GML
+- **Syntax highlighting** for GML, generated from a catalog of GameMaker built-in functions, variables and constants.
+- **Completions** for built-ins, your project's assets, and functions defined in open GML files.
+- **Hover docs and signature help** for built-in functions, plus hover details for assets (an object's sprite and parent).
+- **Go to definition** for functions in open files and for asset names, including asset names in strings.
+- **Lightweight diagnostics** for unmatched braces and possibly undefined identifiers.
+- **Schema validation** for `.yy` and `.yyp` files.
 
-### MCP server
+### Your project in the editor
+- A **GMS2 Project Explorer** in the activity bar with Objects, Scripts, Rooms, Sprites and the other asset types. Objects expand into their events; click a script or event to open its code.
+- **Create objects and scripts, add events, set an object's sprite or parent, and delete assets** from the explorer or the Command Palette. AGMS2 writes the `.yy` files and updates the `.yyp` for you.
+- **Search GML** across the whole project and jump to a result.
+- A **room preview** that plots each room's instances, and an **object inspector** that lists an object's events.
+- **Build and run** commands that call the GameMaker executable you configure (Windows target only).
+- A status bar item that shows the MCP server connection and reconnects with a click.
 
-- Opens a `.yyp` project and indexes project assets
-- Reads scripts, object events, rooms, macros, extensions, and project metadata
-- Creates and edits scripts, objects, rooms, sprites, and object events
-- Sets object sprite and parent
-- Renames and deletes assets
-- Searches and replaces across `.gml`
-- Adds and removes room instances
-- Runs build/run/clean commands through the GameMaker CLI
-- Watches the project and refreshes internal metadata on file changes
-- Emits MCP resource-change notifications so editor clients can refresh automatically
-- Exposes a normalized asset index for editor integrations
-
-### VS Code extension
-
-- Custom `gms2Explorer` tree view that mirrors the GMS2 IDE
-- Opens scripts and object event files directly from the explorer
-- Context actions for:
-  - create object
-  - create script
-  - add event
-  - set sprite
-  - set parent
-  - delete asset
-- Commands for:
-  - open project
-  - refresh explorer
-  - build project
-  - run project
-  - create object
-  - create script
-  - search GML
-  - add event
-- GML language support:
-  - TextMate syntax highlighting
-  - language configuration
-  - built-in completions
-  - asset-name completions
-  - hover docs
-  - signature help
-  - go to definition
-  - lightweight diagnostics
-- Read-only webviews:
-  - room preview
-  - object inspector
-- Automatic MCP process management with status bar connection state
-
-### GML data/skills
-
-- Built-in function signatures and descriptions
-- Built-in constants and variables
-- Prompt-oriented GameMaker best-practice references for common systems
-
-## Repo Layout
-
-```text
-AGMS2/
-├─ packages/
-│  ├─ gml-skills/
-│  ├─ mcp-server/
-│  └─ vsc-extension/
-├─ package.json
-├─ pnpm-workspace.yaml
-└─ tsconfig.base.json
-```
-
-## Requirements
-
-- Node.js 20+
-- `pnpm`
-- GameMaker Studio 2 installed if you want to run actual builds
+### For AI agents
+- A **local MCP server** with 27 tools to read and edit scripts and events, create and rename assets, place instances in rooms, set macros, search and replace GML, and build the project.
+- **Resources** for project metadata, the asset tree, config, macros, extensions, and individual assets, scripts, rooms and object events.
+- **Prompts** to audit an object, describe the project, and find usages.
+- It **watches the project** and tells clients when assets change.
+- **GML skill guides** in [`packages/gml-skills`](packages/gml-skills) that you can point an agent at for idiomatic GameMaker code.
 
 ## Install
 
-From the repo root:
+1. Download `agms2-vsc-extension-<version>.vsix` from the **[Releases page](https://github.com/Sayarinu/AGMS2/releases/latest)**.
+2. In VS Code or Cursor, open the Command Palette and run **Extensions: Install from VSIX…**, then pick the file. From a terminal, `code --install-extension agms2-vsc-extension-<version>.vsix` (or `cursor --install-extension …`) does the same.
+3. Run **GMS2: Open Project** and choose your `.yyp`. The first time, choose **Enable Bundled Server** to use the MCP server that ships inside the extension.
+4. The status bar shows **GMS2: Connected** and the GMS2 Project Explorer fills in.
 
-```bash
+The extension runs the server with the editor's own runtime, so editing a project needs nothing else installed. Building or running a game needs GameMaker installed and **`gms2.gmsBinaryPath`** set.
+
+| Setting | What it does |
+|---|---|
+| `gms2.projectPath` | The `.yyp` to open on startup. Set by **GMS2: Open Project**. |
+| `gms2.autoStartServer` | Connect to the saved project when the editor starts (default on). |
+| `gms2.useBundledServer` | Use the MCP server bundled in the extension. |
+| `gms2.serverPath` | Use a different MCP server entry file when the bundled one is off. |
+| `gms2.gmsBinaryPath` | Path to the GameMaker executable, for build and run. |
+| `gms2.buildTarget` | Build target. Only `Windows` is supported. |
+| `gms2.showBuiltinHints` | Show hover docs for built-in functions. |
+
+## Using the MCP server with agents
+
+The server speaks MCP over **stdio**. Any MCP client that can launch a local command can use it, such as Claude Code, Claude Desktop, Cursor or VS Code.
+
+**1. Get the server.** Either use the copy bundled in the installed extension:
+
+| Editor | Path |
+|---|---|
+| VS Code | `~/.vscode/extensions/agms2.agms2-vsc-extension-<version>/server/index.js` |
+| Cursor | `~/.cursor/extensions/agms2.agms2-vsc-extension-<version>/server/index.js` |
+
+(On Windows, `~` is `%USERPROFILE%`.) Or build it from source, which gives you `packages/mcp-server/dist/index.js`:
+
+```sh
+git clone https://github.com/Sayarinu/AGMS2.git
+cd AGMS2
 pnpm install
+pnpm -r build
 ```
 
-This is important now that the extension package has its own dependencies.
+**2. Point your client at it.** Most clients take an `mcpServers` entry like this (Claude Desktop's `claude_desktop_config.json`, Cursor's `.cursor/mcp.json`):
 
-## Running the MCP Server
-
-Build it:
-
-```bash
-pnpm --filter @agms2/mcp-server build
+```json
+{
+  "mcpServers": {
+    "gms2": {
+      "command": "node",
+      "args": ["/absolute/path/to/server/index.js", "--project", "/absolute/path/to/MyGame.yyp"]
+    }
+  }
+}
 ```
 
-Run it against a project:
+With Claude Code:
 
-```bash
-node packages/mcp-server/dist/index.js --project "/absolute/path/to/MyGame.yyp"
+```sh
+claude mcp add gms2 -- node /absolute/path/to/server/index.js --project /absolute/path/to/MyGame.yyp
 ```
 
-Optional SSE mode:
+**Choosing the project.** The server opens the `.yyp` given by `--project` (a `.yyp` file or the folder containing it), then `GMS2_PROJECT_PATH`, then the first `.yyp` in the working directory or one of its parents.
 
-```bash
-node packages/mcp-server/dist/index.js --project "/absolute/path/to/MyGame.yyp" --sse --port 3001
-```
-
-You can also configure the GameMaker binary by creating `gms2-mcp.config.json` in the project root:
+**Building from an agent.** Put a `gms2-mcp.config.json` next to the `.yyp`, or set the matching environment variables:
 
 ```json
 {
   "gmsBinaryPath": "C:/Program Files/GameMaker/GameMaker.exe",
   "buildTarget": "Windows",
-  "runtimePath": null,
-  "watchMode": true,
-  "logLevel": "info"
+  "watchMode": true
 }
 ```
 
-The extension also passes `gms2.gmsBinaryPath` and `gms2.buildTarget` through environment variables when it starts the server.
+`GMS2_GMS_BINARY_PATH` and `GMS2_BUILD_TARGET` override the file.
 
-## Running the Extension
+**Legacy SSE clients.** Add `--sse --port 3001` to also serve the older HTTP+SSE transport at `http://127.0.0.1:3001/sse`, on localhost only.
 
-### Fastest way in VS Code / Cursor
-
-1. Run install once:
-
-```bash
-pnpm install
-```
-
-2. Build the MCP server:
-
-```bash
-pnpm --filter @agms2/mcp-server build
-```
-
-3. Build the extension:
-
-```bash
-cd packages/vsc-extension
-node ./scripts/generate-gml-assets.mjs
-node ./scripts/build.mjs
-```
-
-4. Open the repo in VS Code or Cursor.
-
-5. Start an Extension Development Host:
-   - open the Run and Debug panel
-   - choose `Run GMS2 Extension`
-   - press `F5`
-
-6. In the Extension Development Host window:
-   - run `GMS2: Open Project`
-   - pick a `.yyp`
-   - wait for the status bar to show `GMS2: Connected`
-
-### Installed VSIX setup
-
-If you install the extension as a normal `.vsix`, also set:
-
-- `gms2.serverPath`
-
-Point it at your built MCP server file:
+## How it works
 
 ```text
-/absolute/path/to/AGMS2/packages/mcp-server/dist/index.js
+ VS Code / Cursor                                     MCP clients (agents)
+┌────────────────────────────────────┐               ┌──────────────────────┐
+│ AGMS2 extension                    │               │ Claude Code, Cursor, │
+│  • GML grammar, completions, hover │               │ Claude Desktop, ...  │
+│  • Project Explorer, commands      │               └──────────┬───────────┘
+│  • Room preview, object inspector  │                          │ stdio
+└─────────────────┬──────────────────┘                          │
+                  │ stdio (MCP)                                  │
+                  ▼                                              ▼
+        ┌──────────────────────────────────────────────────────────────┐
+        │ AGMS2 MCP server (packages/mcp-server)                       │
+        │  tools · resources · prompts · file watcher                  │
+        └──────────────────────────────┬───────────────────────────────┘
+                                       │ reads and writes
+                                       ▼
+                     MyGame.yyp, objects/*/*.yy, *.gml, rooms/*/*.yy
 ```
 
-The installed extension needs this because the MCP server currently lives in the AGMS2 repo, not inside the packaged VSIX.
+The extension starts its own copy of the server for the open project and uses the same tools agents do, so the explorer, commands and agents all go through one implementation. The server edits GameMaker's files directly and keeps the `.yyp` resource list and room order in step. Editor features such as completions and hover docs come from the built-in catalog in [`packages/gml-skills/data/builtins.json`](packages/gml-skills/data/builtins.json).
 
-### Manual command-line build
+| Package | What it is |
+|---|---|
+| [`packages/mcp-server`](packages/mcp-server) | The MCP server. |
+| [`packages/vsc-extension`](packages/vsc-extension) | The VS Code extension, which bundles the server. |
+| [`packages/gml-skills`](packages/gml-skills) | GML guides for agents and the built-in catalog. |
 
-If you only want to rebuild the extension bundle:
+## FAQ
 
-```bash
-cd packages/vsc-extension
-node ./scripts/build.mjs
+**Do I need GameMaker installed?**
+Only to build or run a game. Reading and editing a project works without it.
+
+**Does it work with any GameMaker version?**
+It targets the GameMaker 2.3+ project format (`.yyp` with `.yy` files per asset). New assets are written in that format; recent GameMaker versions upgrade them when they load the project.
+
+**Should GameMaker be open while I edit with AGMS2?**
+Save and close the project in GameMaker first, or reload it afterwards. Both tools write the same files.
+
+**Is my project sent anywhere?**
+No. The server runs on your machine and only reads and writes files in your project. An AI agent you connect sees whatever its tools return, under that agent's own terms.
+
+**Does it work in VSCodium or other VS Code forks?**
+It uses only standard extension APIs, so it should, but AGMS2 is developed against VS Code and Cursor.
+
+## Contributing
+
+Bug reports, ideas and pull requests are welcome. Please open an [issue](https://github.com/Sayarinu/AGMS2/issues) first for larger changes. [AGENTS.md](AGENTS.md) has the setup, commands, architecture notes and branch and commit rules.
+
+```sh
+pnpm install
+pnpm -r build
+pnpm -r typecheck
+pnpm test
 ```
 
-Watch mode:
+## License
 
-```bash
-cd packages/vsc-extension
-node ./scripts/build.mjs --watch
-```
+AGMS2 is free and open-source software under the [MIT License](LICENSE).
 
-## Publishing
+## Disclaimer
 
-### Extension
-
-The extension is designed for Open VSX first:
-
-```bash
-pnpm --filter agms2-vsc-extension package
-pnpm --filter agms2-vsc-extension publish:ovsx
-```
-
-GitHub Releases are also automated for the VSIX. Bump the extension version in `packages/vsc-extension/package.json` or run one of:
-
-```bash
-pnpm release:patch
-pnpm release:minor
-pnpm release:major
-```
-
-Then push `main`. The workflow will build `agms2-vsc-extension-<version>.vsix` and publish a GitHub release tagged `v<version>`.
-
-### Marketplace
-
-The manifest is structured so a VS Code Marketplace publish path can also be added if desired.
-
-## Important Notes
-
-- The extension expects the MCP server build output at `packages/mcp-server/dist/index.js`.
-- For a normally installed VSIX, set `gms2.serverPath` explicitly.
-- Build and run commands only work when the GameMaker executable path is configured.
-- The current diagnostics are intentionally lightweight. They are warnings, not a full semantic compiler.
-- The webviews are read-only on purpose in this version.
-
-## Documentation
-
-- MCP server details: [`packages/mcp-server/README.md`](/Users/carter/Documents/Coding%20Repositories/AGMS2/packages/mcp-server/README.md)
-- Extension details: [`packages/vsc-extension/README.md`](/Users/carter/Documents/Coding%20Repositories/AGMS2/packages/vsc-extension/README.md)
-- GML data/skills: [`packages/gml-skills/README.md`](/Users/carter/Documents/Coding%20Repositories/AGMS2/packages/gml-skills/README.md)
+AGMS2 is an independent, unofficial project. It is not affiliated with, endorsed by or sponsored by YoYo Games Ltd. or Opera Norway AS. GameMaker is a trademark of YoYo Games Ltd., part of the Opera group.

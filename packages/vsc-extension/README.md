@@ -1,101 +1,33 @@
-# GMS2 VS Code Extension
+# AGMS2 for VS Code
 
-VS Code-compatible extension for editing GameMaker Studio 2 projects from the editor.
+Edit GameMaker Studio 2 projects in VS Code, Cursor and other VS Code-compatible editors.
 
-It is intended to work in:
+## Getting started
 
-- VS Code
-- Cursor
-- VSCodium
-- other VS Code forks that support standard extension APIs
+1. Run **GMS2: Open Project** and choose your `.yyp`.
+2. The first time, choose **Enable Bundled Server** to use the MCP server that ships inside this extension.
+3. The status bar shows **GMS2: Connected** and the **GMS2 Project Explorer** in the activity bar fills in.
 
 ## Features
 
-### Explorer
-
-- Custom `gms2Explorer` tree view
-- IDE-style top-level folders like Objects, Scripts, Rooms, and Sprites
-- Script nodes open their `.gml`
-- Object nodes expand into event files
-- Folder and object context actions for common GMS2 operations
-
-### GML language support
-
-- syntax highlighting
-- bracket/comment/indent configuration
-- built-in completions
-- project asset completions
-- built-in hover docs
-- signature help for built-in functions
-- go to definition for local functions and known assets
-- lightweight warnings for undefined identifiers and brace mismatches
-
-### MCP integration
-
-- starts the local MCP server automatically on project open
-- connects over stdio
-- refreshes on project-change notifications
-- shows connection state in the status bar
-
-### Commands
-
-- `gms2.openProject`
-- `gms2.refreshExplorer`
-- `gms2.buildProject`
-- `gms2.runProject`
-- `gms2.createObject`
-- `gms2.createScript`
-- `gms2.searchGml`
-- `gms2.addEvent`
-
-### Webviews
-
-- Room Preview
-- Object Inspector
+- **GML language support:** syntax highlighting, completions for built-ins, assets and functions in open files, hover docs, signature help for built-in functions, go to definition, and warnings for unmatched braces and possibly undefined identifiers.
+- **Project Explorer:** Objects, Scripts, Rooms, Sprites and other asset types; objects expand into their events.
+- **Commands:** open project, refresh explorer, create object, create script, add event, set object sprite or parent, delete asset, search GML, build and run project, reconnect server.
+- **Room preview** and **object inspector** panels.
+- **Schema validation** for `.yy` and `.yyp` files.
 
 ## Settings
 
-- `gms2.projectPath`
-- `gms2.gmsBinaryPath`
-- `gms2.autoStartServer`
-- `gms2.buildTarget`
-- `gms2.showBuiltinHints`
+| Setting | What it does |
+|---|---|
+| `gms2.projectPath` | The `.yyp` to open on startup. Set by **GMS2: Open Project**. |
+| `gms2.autoStartServer` | Connect to the saved project when the editor starts. |
+| `gms2.useBundledServer` | Use the MCP server bundled in the extension. |
+| `gms2.serverPath` | Use a different MCP server entry file when the bundled one is off. |
+| `gms2.gmsBinaryPath` | Path to the GameMaker executable, needed for build and run. |
+| `gms2.buildTarget` | Build target. Only `Windows` is supported. |
+| `gms2.showBuiltinHints` | Show hover docs for built-in functions. |
 
-## Build
+The bundled server is also usable by AI agents; see the [AGMS2 README](https://github.com/Sayarinu/AGMS2#using-the-mcp-server-with-agents).
 
-From the repo root:
-
-```bash
-pnpm install
-pnpm --filter @agms2/mcp-server build
-cd packages/vsc-extension
-node ./scripts/generate-gml-assets.mjs
-node ./scripts/build.mjs
-```
-
-## Run In VS Code
-
-1. Open the repo in VS Code or Cursor.
-2. Press `F5` with the `Run GMS2 Extension` launch config.
-3. In the Extension Development Host, run `GMS2: Open Project`.
-4. Select a `.yyp`.
-
-The extension will spawn:
-
-```bash
-node packages/mcp-server/dist/index.js --project <path-to-project>
-```
-
-If you installed the extension as a `.vsix`, set:
-
-```text
-gms2.serverPath = /absolute/path/to/AGMS2/packages/mcp-server/dist/index.js
-```
-
-Without that setting, the installed extension will not know where your local MCP server build lives.
-
-## Notes
-
-- The extension bundle is written to `packages/vsc-extension/dist/extension.js`.
-- The grammar is generated from `packages/gml-skills/data/builtins.json`.
-- Build/run commands require `gms2.gmsBinaryPath` to be configured.
+AGMS2 is not affiliated with or endorsed by YoYo Games or Opera. GameMaker is a trademark of YoYo Games Ltd.
