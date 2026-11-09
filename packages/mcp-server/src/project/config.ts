@@ -6,9 +6,7 @@ import type { Gms2ServerConfig } from "./types.js";
 export const defaultConfig: Gms2ServerConfig = {
   gmsBinaryPath: null,
   buildTarget: "Windows",
-  runtimePath: null,
-  watchMode: true,
-  logLevel: "info"
+  watchMode: true
 };
 
 export async function loadServerConfig(projectRoot: string): Promise<Gms2ServerConfig> {
@@ -18,8 +16,7 @@ export async function loadServerConfig(projectRoot: string): Promise<Gms2ServerC
     : {};
 
   return {
-    ...defaultConfig,
-    ...parsed,
+    watchMode: parsed.watchMode ?? defaultConfig.watchMode,
     gmsBinaryPath: process.env.GMS2_GMS_BINARY_PATH ?? parsed.gmsBinaryPath ?? defaultConfig.gmsBinaryPath,
     buildTarget: process.env.GMS2_BUILD_TARGET ?? parsed.buildTarget ?? defaultConfig.buildTarget
   };
