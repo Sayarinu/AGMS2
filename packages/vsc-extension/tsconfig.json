@@ -4,8 +4,9 @@
     "rootDir": ".",
     "outDir": "dist",
     "resolveJsonModule": true,
-    "typeRoots": [
-      "../../node_modules/.pnpm/@types+node@22.19.15/node_modules/@types"
+    "types": [
+      "node",
+      "vscode"
     ]
   },
   "include": [

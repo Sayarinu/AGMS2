@@ -1,5 +1,3 @@
-import * as vscode from "vscode";
-
 export interface FunctionDefinition {
   name: string;
   params: string[];
@@ -123,10 +121,6 @@ export function extractDeclaredIdentifiers(source: string): Set<string> {
   return names;
 }
 
-export function getWordRange(document: vscode.TextDocument, position: vscode.Position): vscode.Range | undefined {
-  return document.getWordRangeAtPosition(position, /[A-Za-z_][A-Za-z0-9_]*/);
-}
-
 export function findCallContext(prefix: string): { functionName: string; activeParameter: number } | null {
   let depth = 0;
   let commas = 0;
@@ -140,8 +134,8 @@ export function findCallContext(prefix: string): { functionName: string; activeP
     if (current === "(") {
       if (depth === 0) {
         const before = prefix.slice(0, index);
-        const match = before.match(/([A-Za-z_][A-Za-z0-9_]*)\s*$/);
-        return match ? { functionName: match[1], activeParameter: commas } : null;
+        const functionName = before.match(/([A-Za-z_][A-Za-z0-9_]*)\s*$/)?.[1];
+        return functionName ? { functionName, activeParameter: commas } : null;
       }
       depth -= 1;
       continue;

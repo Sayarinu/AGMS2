@@ -19,9 +19,7 @@ export type AssetType =
 export interface Gms2ServerConfig {
   gmsBinaryPath: string | null;
   buildTarget: string;
-  runtimePath: string | null;
   watchMode: boolean;
-  logLevel: "debug" | "info" | "notice" | "warning" | "error" | "critical" | "alert" | "emergency";
 }
 
 export interface GmsResourceRef {

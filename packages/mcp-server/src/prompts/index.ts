@@ -1,5 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { jsonText } from "../mcp-utils.js";
 import type { Gms2ProjectService } from "../project/service.js";
 
 export function registerPrompts(server: McpServer, project: Gms2ProjectService): void {
@@ -16,7 +17,7 @@ export function registerPrompts(server: McpServer, project: Gms2ProjectService):
           role: "user",
           content: {
             type: "text",
-            text: `Audit this GameMaker object:\n\n${JSON.stringify(await project.getObjectEvents(name), null, 2)}`
+            text: `Audit this GameMaker object:\n\n${jsonText(await project.getObjectEvents(name))}`
           }
         }
       ]
@@ -35,10 +36,10 @@ export function registerPrompts(server: McpServer, project: Gms2ProjectService):
           role: "user",
           content: {
             type: "text",
-            text: `Summarize this GMS2 project:\n\n${JSON.stringify({
+            text: `Summarize this GMS2 project:\n\n${jsonText({
               project: project.getProjectMetadata(),
               assets: project.getAssetsTree()
-            }, null, 2)}`
+            })}`
           }
         }
       ]
@@ -58,7 +59,7 @@ export function registerPrompts(server: McpServer, project: Gms2ProjectService):
           role: "user",
           content: {
             type: "text",
-            text: `Find usages of "${query}" in this GMS2 project:\n\n${JSON.stringify(await project.searchGml(query), null, 2)}`
+            text: `Find usages of "${query}" in this GMS2 project:\n\n${jsonText(await project.searchGml(query))}`
           }
         }
       ]

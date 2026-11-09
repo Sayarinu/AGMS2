@@ -13,7 +13,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@modelcontextprotocol/sdk": "^1.28.0",
     "chokidar": "^4.0.3",
     "execa": "^9.6.0",
     "fast-glob": "^3.3.3",

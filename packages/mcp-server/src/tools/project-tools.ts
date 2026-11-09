@@ -1,6 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { errorResult, successResult } from "../mcp-utils.js";
+import { runTool } from "../mcp-utils.js";
 import type { Gms2ProjectService } from "../project/service.js";
 
 export function registerProjectTools(server: McpServer, project: Gms2ProjectService): void {
@@ -10,7 +10,7 @@ export function registerProjectTools(server: McpServer, project: Gms2ProjectServ
       title: "Get Asset Index",
       description: "Return normalized project asset metadata for editor integrations"
     },
-    async () => await wrapTool(async () => await project.getAssetIndex())
+    async () => await runTool(async () => await project.getAssetIndex())
   );
 
   server.registerTool(
@@ -23,7 +23,7 @@ export function registerProjectTools(server: McpServer, project: Gms2ProjectServ
         name: z.string()
       }
     },
-    async ({ type, name }) => await wrapTool(async () => await project.getAssetWithContent(type, name))
+    async ({ type, name }) => await runTool(async () => await project.getAssetWithContent(type, name))
   );
 
   server.registerTool(
@@ -32,7 +32,7 @@ export function registerProjectTools(server: McpServer, project: Gms2ProjectServ
       title: "Get Room Order",
       description: "Return ordered list of rooms"
     },
-    async () => await wrapTool(async () => ({ rooms: project.getRoomOrder() }))
+    async () => await runTool(() => ({ rooms: project.getRoomOrder() }))
   );
 
   server.registerTool(
@@ -44,7 +44,7 @@ export function registerProjectTools(server: McpServer, project: Gms2ProjectServ
         rooms: z.array(z.string())
       }
     },
-    async ({ rooms }) => await wrapTool(async () => ({ rooms: await project.setRoomOrder(rooms) }))
+    async ({ rooms }) => await runTool(async () => ({ rooms: await project.setRoomOrder(rooms) }))
   );
 
   server.registerTool(
@@ -61,7 +61,7 @@ export function registerProjectTools(server: McpServer, project: Gms2ProjectServ
       }
     },
     async ({ roomName, objectName, x, y, layerName }) =>
-      await wrapTool(async () => await project.addToRoom(roomName, objectName, x, y, layerName))
+      await runTool(async () => await project.addToRoom(roomName, objectName, x, y, layerName))
   );
 
   server.registerTool(
@@ -74,7 +74,7 @@ export function registerProjectTools(server: McpServer, project: Gms2ProjectServ
         instanceId: z.string()
       }
     },
-    async ({ roomName, instanceId }) => await wrapTool(async () => await project.removeFromRoom(roomName, instanceId))
+    async ({ roomName, instanceId }) => await runTool(async () => await project.removeFromRoom(roomName, instanceId))
   );
 
   server.registerTool(
@@ -87,7 +87,7 @@ export function registerProjectTools(server: McpServer, project: Gms2ProjectServ
         value: z.string()
       }
     },
-    async ({ name, value }) => await wrapTool(async () => await project.setMacro(name, value))
+    async ({ name, value }) => await runTool(async () => await project.setMacro(name, value))
   );
 
   server.registerTool(
@@ -96,14 +96,6 @@ export function registerProjectTools(server: McpServer, project: Gms2ProjectServ
       title: "Get Build Log",
       description: "Return the most recent build output"
     },
-    async () => await wrapTool(async () => await project.getBuildLog())
+    async () => await runTool(async () => await project.getBuildLog())
   );
-}
-
-async function wrapTool(action: () => Promise<Record<string, unknown>>) {
-  try {
-    return successResult(await action());
-  } catch (error) {
-    return errorResult(error);
-  }
 }

@@ -1,8 +1,7 @@
-import path from "node:path";
 import * as vscode from "vscode";
 import { builtinConstantMap, builtinConstants, builtinFunctionMap, builtinFunctions, builtinVariableMap, builtinVariables } from "./builtins.js";
-import { extractFunctionDefinitions, findCallContext, getWordRange, stripCommentsAndStrings } from "./parser.js";
-import type { AssetIndexEntry, BuiltinFunction } from "../types.js";
+import { extractFunctionDefinitions, findCallContext, stripCommentsAndStrings } from "./parser.js";
+import type { AssetIndexEntry } from "../types.js";
 import type { Gms2McpClient } from "../mcpClient.js";
 
 export function registerLanguageProviders(context: vscode.ExtensionContext, client: Gms2McpClient): void {
@@ -219,4 +218,8 @@ function assetKind(asset: AssetIndexEntry): vscode.CompletionItemKind {
     default:
       return vscode.CompletionItemKind.Value;
   }
+}
+
+function getWordRange(document: vscode.TextDocument, position: vscode.Position): vscode.Range | undefined {
+  return document.getWordRangeAtPosition(position, /[A-Za-z_][A-Za-z0-9_]*/);
 }

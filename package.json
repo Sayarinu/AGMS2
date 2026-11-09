@@ -20,5 +20,10 @@
     "release:patch": "pnpm --dir packages/vsc-extension version patch --no-git-tag-version",
     "release:minor": "pnpm --dir packages/vsc-extension version minor --no-git-tag-version",
     "release:major": "pnpm --dir packages/vsc-extension version major --no-git-tag-version"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }

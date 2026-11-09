@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+packages/vsc-extension/server/
+packages/vsc-extension/src/generated/
+*.vsix
+*.tsbuildinfo
+
+# Test output
+coverage/
+
+# Logs and local files
+*.log
+.gms2-mcp-build.log
+.DS_Store
+.env
+.env.*
