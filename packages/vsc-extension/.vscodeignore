@@ -6,8 +6,7 @@ test/**
 scripts/**
 dist/**/*.map
 server/**/*.map
-tsconfig.json
-vitest.config.ts
+tsconfig*.json
 node_modules/**
 **/*.ts
 *.vsix

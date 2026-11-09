@@ -6,28 +6,25 @@ on:
       - main
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: release-extension
+  cancel-in-progress: false
 
 jobs:
-  release:
+  check-version:
+    name: Check for a new version
     runs-on: ubuntu-latest
-
+    outputs:
+      version: ${{ steps.version.outputs.value }}
+      release: ${{ steps.tag_check.outputs.release }}
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.8.1
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
+          persist-credentials: false
 
       - name: Read extension version
         id: version
@@ -42,28 +39,58 @@ jobs:
           VERSION: ${{ steps.version.outputs.value }}
         run: |
           if git rev-parse "refs/tags/v${VERSION}" >/dev/null 2>&1; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "v${VERSION} is already released; nothing to do."
+            echo "release=false" >> "$GITHUB_OUTPUT"
           else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "release=true" >> "$GITHUB_OUTPUT"
           fi
 
+  # Runs only for a new version, so pnpm and the Node cache are never set up without an install
+  # (setup-node's post step fails when the pnpm store it should cache does not exist).
+  release:
+    name: Package and publish VSIX
+    needs: check-version
+    if: needs.check-version.outputs.release == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ needs.check-version.outputs.version }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      # Uses the pnpm version from packageManager in package.json.
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: pnpm
+
       - name: Install dependencies
-        if: steps.tag_check.outputs.exists == 'false'
         run: pnpm install --frozen-lockfile
 
-      - name: Build extension
-        if: steps.tag_check.outputs.exists == 'false'
-        run: pnpm --filter agms2-vsc-extension build
+      - name: Build
+        run: pnpm -r build
+
+      - name: Test
+        run: pnpm test
 
       - name: Package VSIX
-        if: steps.tag_check.outputs.exists == 'false'
         run: pnpm --filter agms2-vsc-extension package:vsix
 
       - name: Publish GitHub release
-        if: steps.tag_check.outputs.exists == 'false'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.version.outputs.value }}
-          name: v${{ steps.version.outputs.value }}
-          generate_release_notes: true
-          files: packages/vsc-extension/agms2-vsc-extension-${{ steps.version.outputs.value }}.vsix
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "v${VERSION}"
+          "packages/vsc-extension/agms2-vsc-extension-${VERSION}.vsix"
+          --repo "${GITHUB_REPOSITORY}"
+          --target "${GITHUB_SHA}"
+          --title "v${VERSION}"
+          --generate-notes
