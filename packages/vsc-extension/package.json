@@ -257,6 +257,7 @@
     "prebuild": "node ./scripts/generate-gml-assets.mjs",
     "build": "node ./scripts/build.mjs",
     "dev": "node ./scripts/build.mjs --watch",
+    "pretypecheck": "node ./scripts/generate-gml-assets.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json",
     "package": "vsce package --no-dependencies",
     "package:vsix": "vsce package --no-dependencies --out ./agms2-vsc-extension-${npm_package_version}.vsix",
