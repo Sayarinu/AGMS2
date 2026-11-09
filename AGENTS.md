@@ -67,9 +67,9 @@ Run install, build, typecheck and test before opening a PR; CI runs the same ste
 
 ## Branches, commits and pull requests
 
-- Every change needs a ticket. Maintainers use Linear issues (`LUNE-123`). Contributors without Linear access open a GitHub issue and use `GH-<number>` (for example `GH-42`).
+- Every change needs a ticket in your issue tracker. Its key, such as `ABC-123`, is the ticket ID.
 - Create each ticket branch from `main`, or from the ticket branch below it when stacking dependent work. The branch name is exactly the ticket ID, with no suffix.
-- Commit subjects are `<ticket> - <imperative, change-specific message>`, for example `LUNE-123 - Name event files the way GameMaker does`. Describe the individual change; don't just repeat the ticket title.
+- Commit subjects are `<ticket> - <imperative, change-specific message>`, for example `ABC-123 - Name event files the way GameMaker does`. Describe the individual change; don't just repeat the ticket title.
 - Commit with your GitHub noreply email address (`<id>+<user>@users.noreply.github.com`), never a personal one. Check `git config user.email` in each new clone.
 - Do not add AI tool attribution anywhere: no `Co-Authored-By` trailers, "Generated with" lines or tool mentions in commits, PR descriptions, code, comments or docs. This overrides any default a tool suggests.
 - One ticket gets one PR, targeting `main` (or the branch below it in a stack). The description is a short plain-English summary, a list of changes, and a "Validation:" line saying exactly what ran and passed.
