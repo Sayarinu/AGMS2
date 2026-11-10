@@ -8,7 +8,7 @@ import { registerResources } from "./resources/index.js";
 import { registerTools } from "./tools/index.js";
 
 export const SERVER_NAME = "gms2-mcp-server";
-export const SERVER_VERSION = "0.1.0";
+export const SERVER_VERSION = "0.2.0";
 
 export interface StartServerOptions {
   enableSse: boolean;

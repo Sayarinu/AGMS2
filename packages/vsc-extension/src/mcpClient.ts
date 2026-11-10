@@ -87,7 +87,7 @@ export class Gms2McpClient implements vscode.Disposable {
     };
 
     this.client = new Client(
-      { name: "agms2-vsc-extension", version: "0.1.0" },
+      { name: "agms2-vsc-extension", version: "0.2.0" },
       {
         capabilities: {},
         listChanged: {
